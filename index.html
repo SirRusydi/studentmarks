@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Memuatkan ikon Lucide untuk antara muka yang lebih menarik -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Memuatkan Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* Gaya tambahan untuk pengalaman pengguna yang lebih baik */
         body {
@@ -143,373 +145,396 @@
         </main>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const { createClient } = supabase;
 
-        // =================================================================
-        // BAHAGIAN KONFIGURASI PENTADBIR (ADMIN)
-        // 1. Dapatkan konfigurasi ini dari projek Firebase anda.
-        // (Settings -> Project settings -> General -> Your apps -> SDK setup and configuration)
-        // =================================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyDnNq3GxgdH6uF96_rywDA6l_jpSqhGccI",
-            authDomain: "markah-pelajar.firebaseapp.com",
-            projectId: "markah-pelajar",
-            storageBucket: "markah-pelajar.appspot.com",
-            messagingSenderId: "530226317353",
-            appId: "1:530226317353:web:011fc884ffe714da617438",
-            measurementId: "G-9H2MNTCDB0"
-        };
-        // =================================================================
+            // =================================================================
+            // BAHAGIAN KONFIGURASI PENTADBIR (ADMIN)
+            // 1. Dapatkan konfigurasi ini dari projek Supabase anda.
+            // (Project Settings -> API)
+            // =================================================================
+            const SUPABASE_URL = 'https://whgkcuudnvuuhcldqyjf.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndoZ2tjdXVkbnZ1dWhjbGRxeWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxOTMzMDEsImV4cCI6MjA3NTc2OTMwMX0.UxQZAph8XZuqX2QKflKCseTTYR2kmO0uHZvvFou5hG4';
+            // =================================================================
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+            const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        lucide.createIcons();
+            lucide.createIcons();
 
-        // Konfigurasi Google Sheets & Penilaian
-        const SPREADSHEET_ID = '1lKpYPqQyv1J9Lnt1kgTrnaWy3G1JsSqJpMsOgyds2qo';
-        const API_KEY = 'AIzaSyASE0C8W5yhfcU8jsK8ziijEJKr4RCFrbA';
+            // Konfigurasi Google Sheets & Penilaian
+            const SPREADSHEET_ID = '1lKpYPqQyv1J9Lnt1kgTrnaWy3G1JsSqJpMsOgyds2qo';
+            const API_KEY = 'AIzaSyASE0C8W5yhfcU8jsK8ziijEJKr4RCFrbA';
 
-        const assessmentStructure = {
-            topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 30 }, ],
-            pb: [ { name: 'Tugasan', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
-            ups: [ { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 }, { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 11 }, ]
-        };
-        const allAssessments = [ ...assessmentStructure.topikal, ...assessmentStructure.pb, ...assessmentStructure.ups ];
-        const totalWeightageUPS = 20;
-        const totalWeightageTopikal = 40;
-
-        // DOM References
-        const connectionStatusEl = document.getElementById('connection-status');
-        const classSelectEl = document.getElementById('class-select');
-        const lecturerDisplayEl = document.getElementById('lecturer-display');
-        const mainContentEl = document.getElementById('main-content');
-        const tabEntry = document.getElementById('tab-entry');
-        const tabReport = document.getElementById('tab-report');
-        const entryContent = document.getElementById('entry-content');
-        const reportContentArea = document.getElementById('report-content-area');
-        const reportClassNameEl = document.getElementById('report-class-name');
-        const assessmentSelectEl = document.getElementById('assessment-select');
-        const markEntryArea = document.getElementById('mark-entry-area');
-        const currentAssessmentDisplay = document.getElementById('current-assessment-display');
-        const markEntryHead = document.getElementById('mark-entry-head');
-        const markEntryBody = document.getElementById('mark-entry-body');
-        const saveMarksBtn = document.getElementById('save-marks-btn');
-        const saveStatusEl = document.getElementById('save-status');
-        const printClassReportBtn = document.getElementById('print-class-report-btn');
-        const tabReportPbUps = document.getElementById('tab-report-pb-ups');
-        const tabReportTopikal = document.getElementById('tab-report-topikal');
-        const pbUpsReportDisplay = document.getElementById('pb-ups-report-display');
-        const topikalReportDisplay = document.getElementById('topikal-report-display');
-
-        let state = {
-            classToLecturer: {},
-            classes: {}, 
-            scores: {}, // Will be populated from Firestore
-            currentClass: localStorage.getItem('currentClass_v12') || null
-        };
-        let saveStatusTimeout;
-        let unsubscribe; // To store the Firestore listener
-
-        function showSaveNotification() {
-            saveStatusEl.classList.remove('hidden');
-            clearTimeout(saveStatusTimeout);
-            saveStatusTimeout = setTimeout(() => {
-                saveStatusEl.classList.add('hidden');
-            }, 2000);
-        }
-
-        async function saveScoresToFirebase() {
-            if (!state.currentClass) return;
-            const docRef = doc(db, "scores", state.currentClass);
-            try {
-                await setDoc(docRef, state.scores);
-                showSaveNotification();
-            } catch (e) {
-                console.error("Error writing document: ", e);
-                alert("Ralat! Markah tidak dapat disimpan ke pangkalan data.");
-            }
-        }
-        
-        async function listenForScores() {
-            if (unsubscribe) unsubscribe(); // Detach old listener
-            if (!state.currentClass) {
-                state.scores = {};
-                renderMarkEntryTable(); // Clear table if no class is selected
-                return;
+            const assessmentStructure = {
+                topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 30 }, ],
+                pb: [ { name: 'Tugasan', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
+                ups: [ { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 }, { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 11 }, ]
             };
+            const allAssessments = [ ...assessmentStructure.topikal, ...assessmentStructure.pb, ...assessmentStructure.ups ];
+            const totalWeightageUPS = 20;
+            const totalWeightageTopikal = 40;
 
-            const docRef = doc(db, "scores", state.currentClass);
-            unsubscribe = onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    state.scores = docSnap.data();
-                    console.log("Markah dimuat turun dari Firestore.");
+            // DOM References
+            const connectionStatusEl = document.getElementById('connection-status');
+            const classSelectEl = document.getElementById('class-select');
+            const lecturerDisplayEl = document.getElementById('lecturer-display');
+            const mainContentEl = document.getElementById('main-content');
+            const tabEntry = document.getElementById('tab-entry');
+            const tabReport = document.getElementById('tab-report');
+            const entryContent = document.getElementById('entry-content');
+            const reportContentArea = document.getElementById('report-content-area');
+            const reportClassNameEl = document.getElementById('report-class-name');
+            const assessmentSelectEl = document.getElementById('assessment-select');
+            const markEntryArea = document.getElementById('mark-entry-area');
+            const currentAssessmentDisplay = document.getElementById('current-assessment-display');
+            const markEntryHead = document.getElementById('mark-entry-head');
+            const markEntryBody = document.getElementById('mark-entry-body');
+            const saveMarksBtn = document.getElementById('save-marks-btn');
+            const saveStatusEl = document.getElementById('save-status');
+            const printClassReportBtn = document.getElementById('print-class-report-btn');
+            const tabReportPbUps = document.getElementById('tab-report-pb-ups');
+            const tabReportTopikal = document.getElementById('tab-report-topikal');
+            const pbUpsReportDisplay = document.getElementById('pb-ups-report-display');
+            const topikalReportDisplay = document.getElementById('topikal-report-display');
+
+            let state = {
+                classToLecturer: {},
+                classes: {}, 
+                scores: {}, 
+                currentClass: localStorage.getItem('currentClass_supabase_v1') || null
+            };
+            let saveStatusTimeout;
+            let channel; // To store the Supabase channel
+
+            function showSaveNotification() {
+                saveStatusEl.classList.remove('hidden');
+                clearTimeout(saveStatusTimeout);
+                saveStatusTimeout = setTimeout(() => {
+                    saveStatusEl.classList.add('hidden');
+                }, 2000);
+            }
+
+            async function saveScoresToSupabase() {
+                if (!state.currentClass) return;
+                 if (SUPABASE_URL === 'URL_PROJEK_SUPABASE_ANDA') {
+                    alert('Sila masukkan URL dan Kunci Supabase di dalam kod sumber.');
+                    return;
+                }
+                const { error } = await supabaseClient
+                    .from('scores')
+                    .upsert({ class_name: state.currentClass, scores_data: state.scores });
+
+                if (error) {
+                    console.error('Error saving scores:', error);
+                    alert(`Ralat menyimpan data: ${error.message}\n\nPastikan lajur 'class_name' telah ditetapkan sebagai "Primary Key" di dalam jadual 'scores' di Supabase anda.`);
                 } else {
-                    console.log("Tiada data markah sedia ada untuk kelas ini. Fail baharu akan dicipta.");
+                    showSaveNotification();
+                }
+            }
+            
+            async function listenForScores() {
+                if (channel) {
+                    supabaseClient.removeChannel(channel);
+                }
+                if (!state.currentClass) {
+                    state.scores = {};
+                    renderMarkEntryTable();
+                    return;
+                }
+                 if (SUPABASE_URL === 'URL_PROJEK_SUPABASE_ANDA') return;
+
+                // Fetch initial data
+                const { data, error } = await supabaseClient
+                    .from('scores')
+                    .select('scores_data')
+                    .eq('class_name', state.currentClass)
+                    .single();
+
+                if (data) {
+                    state.scores = data.scores_data || {};
+                    console.log("Markah dimuat turun dari Supabase.");
+                } else {
+                    console.log("Tiada data markah sedia ada untuk kelas ini.");
                     state.scores = {};
                 }
-                // Re-render the necessary parts
+                 if (error && error.code !== 'PGRST116') { // Ignore "No rows found" error
+                    console.error("Error fetching scores:", error);
+                }
+
                 renderMarkEntryTable();
                 if(!reportContentArea.classList.contains('hidden')) {
                     renderAllClassReports();
                 }
-            });
-        }
-        
-        async function fetchDataFromSheet(sheetName) {
-            if (SPREADSHEET_ID === 'MASUKKAN_SPREADSHEET_ID_ANDA_DI_SINI' || API_KEY === 'MASUKKAN_API_KEY_ANDA_DI_SINI') {
-                connectionStatusEl.textContent = 'Status: Ralat! Sila minta admin untuk memasukkan Spreadsheet ID dan API Key di dalam kod sumber.';
-                connectionStatusEl.className = 'text-sm mt-2 text-red-600';
-                return null;
+
+                // Listen for real-time changes
+                channel = supabaseClient.channel(`scores_${state.currentClass}`)
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'scores',
+                        filter: `class_name=eq.${state.currentClass}`
+                    }, payload => {
+                        console.log('Perubahan diterima dari Supabase!', payload);
+                        if (payload.new) {
+                            state.scores = payload.new.scores_data || {};
+                            renderMarkEntryTable();
+                             if(!reportContentArea.classList.contains('hidden')) {
+                                renderAllClassReports();
+                            }
+                        }
+                    })
+                    .subscribe();
             }
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}?key=${API_KEY}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Ralat Rangkaian: ${response.statusText}`);
-                const data = await response.json();
-                if (!data.values || data.values.length < 2) return [];
-                const headers = data.values[0];
-                const rows = data.values.slice(1);
-                return rows.map(row => {
-                    let obj = {};
-                    headers.forEach((header, index) => { obj[header] = row[index]; });
-                    return obj;
+            
+            async function fetchDataFromSheet(sheetName) {
+                if (SPREADSHEET_ID === 'MASUKKAN_SPREADSHEET_ID_ANDA_DI_SINI' || API_KEY === 'MASUKKAN_API_KEY_ANDA_DI_SINI') {
+                    connectionStatusEl.textContent = 'Status: Ralat! Sila minta admin untuk memasukkan Spreadsheet ID dan API Key di dalam kod sumber.';
+                    connectionStatusEl.className = 'text-sm mt-2 text-red-600';
+                    return null;
+                }
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}?key=${API_KEY}`;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Ralat Rangkaian: ${response.statusText}`);
+                    const data = await response.json();
+                    if (!data.values || data.values.length < 2) return [];
+                    const headers = data.values[0];
+                    const rows = data.values.slice(1);
+                    return rows.map(row => {
+                        let obj = {};
+                        headers.forEach((header, index) => { obj[header] = row[index]; });
+                        return obj;
+                    });
+                } catch (error) {
+                    console.error(`Gagal memuat turun data dari sheet "${sheetName}":`, error);
+                    connectionStatusEl.textContent = `Status: Gagal muat turun data dari Google Sheets! Periksa sambungan internet, Google API Key (pastikan tiada sekatan 'referrer'), dan Spreadsheet ID. Ralat: ${error.message}`;
+                    connectionStatusEl.className = 'text-sm mt-2 text-red-600';
+                    return null;
+                }
+            }
+
+            async function initializeAndFetchData() {
+                connectionStatusEl.textContent = 'Status: Sedang memuat turun data...';
+                connectionStatusEl.className = 'text-sm mt-2 text-yellow-600';
+                const lecturersData = await fetchDataFromSheet('SenaraiPensyarah');
+                if (!lecturersData) return;
+                state.classToLecturer = {};
+                lecturersData.forEach(row => {
+                    const lecturerName = row.NamaPensyarah;
+                    if (lecturerName) {
+                        const classesTaught = row.KelasDiajar ? row.KelasDiajar.split(',').map(c => c.trim()) : [];
+                        classesTaught.forEach(className => { state.classToLecturer[className] = lecturerName; });
+                    }
                 });
-            } catch (error) {
-                console.error(`Gagal memuat turun data dari sheet "${sheetName}":`, error);
-                connectionStatusEl.textContent = `Status: Gagal! Periksa Spreadsheet ID, API Key, atau nama Tab (${sheetName}).`;
-                connectionStatusEl.className = 'text-sm mt-2 text-red-600';
-                return null;
+                const studentsData = await fetchDataFromSheet('SenaraiPelajar');
+                if (!studentsData) return;
+                state.classes = {};
+                studentsData.forEach(row => {
+                    const className = row.Kelas;
+                    if(className) {
+                        if (!state.classes[className]) state.classes[className] = { students: [] };
+                        state.classes[className].students.push({ name: row.NamaPelajar, matric: row.NoMatrik });
+                    }
+                });
+                connectionStatusEl.textContent = 'Status: Data berjaya dimuat turun! Sila pilih kelas.';
+                connectionStatusEl.className = 'text-sm mt-2 text-green-600';
             }
-        }
 
-        async function initializeAndFetchData() {
-            connectionStatusEl.textContent = 'Status: Sedang memuat turun data...';
-            connectionStatusEl.className = 'text-sm mt-2 text-yellow-600';
-            const lecturersData = await fetchDataFromSheet('SenaraiPensyarah');
-            if (!lecturersData) return;
-            state.classToLecturer = {};
-            lecturersData.forEach(row => {
-                const lecturerName = row.NamaPensyarah;
-                if (lecturerName) {
-                    const classesTaught = row.KelasDiajar ? row.KelasDiajar.split(',').map(c => c.trim()) : [];
-                    classesTaught.forEach(className => { state.classToLecturer[className] = lecturerName; });
-                }
-            });
-            const studentsData = await fetchDataFromSheet('SenaraiPelajar');
-            if (!studentsData) return;
-            state.classes = {};
-            studentsData.forEach(row => {
-                const className = row.Kelas;
-                if(className) {
-                    if (!state.classes[className]) state.classes[className] = { students: [] };
-                    state.classes[className].students.push({ name: row.NamaPelajar, matric: row.NoMatrik });
-                }
-            });
-            connectionStatusEl.textContent = 'Status: Data berjaya dimuat turun! Sila pilih kelas.';
-            connectionStatusEl.className = 'text-sm mt-2 text-green-600';
-        }
-
-        function renderClassSelector() {
-            classSelectEl.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-            Object.keys(state.classes).sort().forEach(className => {
-                const option = document.createElement('option');
-                option.value = className;
-                option.textContent = className;
-                if(className === state.currentClass) option.selected = true;
-                classSelectEl.appendChild(option);
-            });
-            updateOnClassChange();
-        }
-
-        function updateOnClassChange() {
-            const selectedClass = state.currentClass;
-            if(selectedClass) {
-                lecturerDisplayEl.textContent = state.classToLecturer[selectedClass] || 'Tidak Ditetapkan';
-                mainContentEl.classList.remove('hidden');
-                renderAssessmentSelector();
-                listenForScores(); // Start listening for scores for the new class
-                if (!reportContentArea.classList.contains('hidden')) {
-                    renderAllClassReports();
-                }
-            } else {
-                lecturerDisplayEl.textContent = '-';
-                mainContentEl.classList.add('hidden');
+            function renderClassSelector() {
+                classSelectEl.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+                Object.keys(state.classes).sort().forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    if(className === state.currentClass) option.selected = true;
+                    classSelectEl.appendChild(option);
+                });
+                updateOnClassChange();
             }
-        }
 
-        function renderAssessmentSelector() {
-            assessmentSelectEl.innerHTML = '<option value="">-- Pilih Penilaian --</option>';
-            allAssessments.forEach(ass => {
-                const option = document.createElement('option');
-                option.value = ass.name;
-                option.textContent = `${ass.fullName} (Markah Penuh: ${ass.fullMarks})`;
-                assessmentSelectEl.appendChild(option);
-            });
-            markEntryArea.classList.add('hidden');
-        }
+            function updateOnClassChange() {
+                const selectedClass = state.currentClass;
+                if(selectedClass) {
+                    lecturerDisplayEl.textContent = state.classToLecturer[selectedClass] || 'Tidak Ditetapkan';
+                    mainContentEl.classList.remove('hidden');
+                    renderAssessmentSelector();
+                    listenForScores(); 
+                    if (!reportContentArea.classList.contains('hidden')) {
+                        renderAllClassReports();
+                    }
+                } else {
+                    lecturerDisplayEl.textContent = '-';
+                    mainContentEl.classList.add('hidden');
+                }
+            }
 
-        function renderMarkEntryTable() {
-            const assessmentName = assessmentSelectEl.value;
-            if (!assessmentName || !state.currentClass) {
+            function renderAssessmentSelector() {
+                assessmentSelectEl.innerHTML = '<option value="">-- Pilih Penilaian --</option>';
+                allAssessments.forEach(ass => {
+                    const option = document.createElement('option');
+                    option.value = ass.name;
+                    option.textContent = `${ass.fullName} (Markah Penuh: ${ass.fullMarks})`;
+                    assessmentSelectEl.appendChild(option);
+                });
                 markEntryArea.classList.add('hidden');
-                return;
             }
-            const assessment = allAssessments.find(a => a.name === assessmentName);
-            currentAssessmentDisplay.textContent = assessment.fullName;
-            markEntryHead.innerHTML = `<tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Bil.</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Pelajar</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">No. Matrik</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Markah (/ ${assessment.fullMarks})</th></tr>`;
-            markEntryBody.innerHTML = '';
-            const students = state.classes[state.currentClass].students;
-            students.forEach((student, index) => {
-                const studentScores = state.scores[student.matric] || {};
-                const score = studentScores[assessment.name] === null || studentScores[assessment.name] === undefined ? '' : studentScores[assessment.name];
-                const row = document.createElement('tr');
-                row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${index + 1}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${student.name}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${student.matric}</td><td class="px-6 py-4"><input type="number" class="score-input w-24 rounded-md border-slate-300" data-student-matric="${student.matric}" value="${score}"></td>`;
-                markEntryBody.appendChild(row);
-            });
-            markEntryArea.classList.remove('hidden');
-        }
-        
-        function calculateScores(studentMatric) {
-            const studentScores = state.scores[studentMatric] || {};
-            const results = { pb: 0, ups: 0, ut: 0, totalEtr: 0 };
-            assessmentStructure.pb.forEach(ass => { const score = parseFloat(studentScores[ass.name] || 0); if (!isNaN(score)) results.pb += (score / ass.fullMarks) * ass.weightage; });
-            let totalUpsPercentage = 0, upsCount = 0;
-            assessmentStructure.ups.forEach(ass => { const score = parseFloat(studentScores[ass.name]); if (!isNaN(score)) { totalUpsPercentage += (score / ass.fullMarks) * 100; upsCount++; } });
-            if (upsCount > 0) results.ups = (totalUpsPercentage / upsCount) * (totalWeightageUPS / 100);
-            let totalTopikalPercentage = 0, topikalCount = 0;
-            assessmentStructure.topikal.forEach(ass => { const score = parseFloat(studentScores[ass.name]); if (!isNaN(score)) { totalTopikalPercentage += (score / ass.fullMarks) * 100; topikalCount++; } });
-            if (topikalCount > 0) results.ut = (totalTopikalPercentage / topikalCount) * (totalWeightageTopikal / 100);
-            results.totalEtr = results.pb + results.ups + results.ut;
-            return results;
-        }
 
-        function renderAllClassReports() {
-            if (!state.currentClass) { pbUpsReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; topikalReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; return; }
-            reportClassNameEl.textContent = state.currentClass;
-            const students = state.classes[state.currentClass].students;
-            let pbUpsHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
-            assessmentStructure.pb.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
-            assessmentStructure.ups.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
-            pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">Jml PB</th><th class="px-2 py-2 font-bold text-blue-600">Jml UPS</th><th class="px-2 py-2 font-bold text-green-600">AKHIR</th></tr></thead>`;
-            let pbUpsBody = '<tbody>';
-            students.forEach((student, index) => {
-                const studentScores = state.scores[student.matric] || {};
-                const calculated = calculateScores(student.matric);
-                pbUpsBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.name}</td>`;
-                assessmentStructure.pb.forEach(a => { const score = studentScores[a.name]; const scoreDisplay = (score === null || score === undefined) ? '' : score; const weightedScore = (score === null || score === undefined) ? '' : `(${(score / a.fullMarks * a.weightage).toFixed(2)}%)`; pbUpsBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${weightedScore}</span></td>`; });
-                assessmentStructure.ups.forEach(a => pbUpsBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
-                pbUpsBody += `<td class="px-2 py-2 font-bold text-blue-600">${calculated.pb.toFixed(2)}</td><td class="px-2 py-2 font-bold text-blue-600">${calculated.ups.toFixed(2)}</td><td class="px-2 py-2 font-bold text-green-600">${(calculated.pb + calculated.ups).toFixed(2)}</td></tr>`;
-            });
-            pbUpsBody += '</tbody>';
-            pbUpsReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${pbUpsHeader}${pbUpsBody}</table></div>`;
-            let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
-            assessmentStructure.topikal.forEach(a => topikalHeader += `<th class="px-2 py-2">${a.name}</th>`);
-            topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR (/100)</th></tr></thead>`;
-            let topikalBody = '<tbody>';
-            students.forEach((student, index) => {
-                const studentScores = state.scores[student.matric] || {};
-                const calculated = calculateScores(student.matric);
-                topikalBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.name}</td>`;
-                assessmentStructure.topikal.forEach(a => topikalBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
-                topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${calculated.ut.toFixed(2)}</td>`;
-                topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${calculated.totalEtr.toFixed(2)}</td></tr>`;
-            });
-            topikalBody += '</tbody>';
-            topikalReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${topikalHeader}${topikalBody}</table></div>`;
-        }
-
-        function updatePrintableArea() {
-            if (!pbUpsReportDisplay.classList.contains('hidden')) { pbUpsReportDisplay.classList.add('printable-area'); topikalReportDisplay.classList.remove('printable-area'); } 
-            else { topikalReportDisplay.classList.add('printable-area'); pbUpsReportDisplay.classList.remove('printable-area'); }
-        }
-
-        // --- Event Listeners ---
-        classSelectEl.addEventListener('change', (e) => {
-            state.currentClass = e.target.value;
-            localStorage.setItem('currentClass_v12', state.currentClass);
-            updateOnClassChange();
-        });
-        
-        assessmentSelectEl.addEventListener('change', renderMarkEntryTable);
-
-        markEntryBody.addEventListener('change', (e) => {
-            if (e.target.classList.contains('score-input')) {
-                const studentMatric = e.target.dataset.studentMatric;
+            function renderMarkEntryTable() {
                 const assessmentName = assessmentSelectEl.value;
-                const score = e.target.value;
-                if (!state.scores[studentMatric]) state.scores[studentMatric] = {};
-                state.scores[studentMatric][assessmentName] = score === '' ? null : parseFloat(score);
-                // Markah tidak disimpan di sini, tunggu butang Simpan ditekan
+                if (!assessmentName || !state.currentClass) {
+                    markEntryArea.classList.add('hidden');
+                    return;
+                }
+                const assessment = allAssessments.find(a => a.name === assessmentName);
+                currentAssessmentDisplay.textContent = assessment.fullName;
+                markEntryHead.innerHTML = `<tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Bil.</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Pelajar</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">No. Matrik</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Markah (/ ${assessment.fullMarks})</th></tr>`;
+                markEntryBody.innerHTML = '';
+                const students = state.classes[state.currentClass]?.students || [];
+                students.forEach((student, index) => {
+                    const studentScores = state.scores[student.matric] || {};
+                    const score = studentScores[assessment.name] === null || studentScores[assessment.name] === undefined ? '' : studentScores[assessment.name];
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${index + 1}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${student.name}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${student.matric}</td><td class="px-6 py-4"><input type="number" class="score-input w-24 rounded-md border-slate-300" data-student-matric="${student.matric}" value="${score}"></td>`;
+                    markEntryBody.appendChild(row);
+                });
+                markEntryArea.classList.remove('hidden');
             }
-        });
-        
-        markEntryBody.addEventListener('paste', (e) => {
-            if (!e.target.classList.contains('score-input')) return;
-            e.preventDefault();
-            const text = e.clipboardData.getData('text/plain');
-            const marks = text.split(/\r?\n/).filter(m => m.trim() !== '');
-            const allInputs = Array.from(markEntryBody.querySelectorAll('.score-input'));
-            let startIndex = allInputs.indexOf(e.target);
-            const assessmentName = assessmentSelectEl.value;
-            marks.forEach((mark, i) => {
-                let currentIndex = startIndex + i;
-                if (currentIndex < allInputs.length) {
-                    const currentInput = allInputs[currentIndex];
-                    const studentMatric = currentInput.dataset.studentMatric;
-                    currentInput.value = mark.trim();
+            
+            function calculateScores(studentMatric) {
+                const studentScores = state.scores[studentMatric] || {};
+                const results = { pb: 0, ups: 0, ut: 0, totalEtr: 0 };
+                assessmentStructure.pb.forEach(ass => { const score = parseFloat(studentScores[ass.name] || 0); if (!isNaN(score)) results.pb += (score / ass.fullMarks) * ass.weightage; });
+                let totalUpsPercentage = 0, upsCount = 0;
+                assessmentStructure.ups.forEach(ass => { const score = parseFloat(studentScores[ass.name]); if (!isNaN(score)) { totalUpsPercentage += (score / ass.fullMarks) * 100; upsCount++; } });
+                if (upsCount > 0) results.ups = (totalUpsPercentage / upsCount) * (totalWeightageUPS / 100);
+                let totalTopikalPercentage = 0, topikalCount = 0;
+                assessmentStructure.topikal.forEach(ass => { const score = parseFloat(studentScores[ass.name]); if (!isNaN(score)) { totalTopikalPercentage += (score / ass.fullMarks) * 100; topikalCount++; } });
+                if (topikalCount > 0) results.ut = (totalTopikalPercentage / topikalCount) * (totalWeightageTopikal / 100);
+                results.totalEtr = results.pb + results.ups + results.ut;
+                return results;
+            }
+
+            function renderAllClassReports() {
+                if (!state.currentClass || !state.classes[state.currentClass]) { pbUpsReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; topikalReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; return; }
+                reportClassNameEl.textContent = state.currentClass;
+                const students = state.classes[state.currentClass].students;
+                let pbUpsHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
+                assessmentStructure.pb.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
+                assessmentStructure.ups.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
+                pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">Jml PB</th><th class="px-2 py-2 font-bold text-blue-600">Jml UPS</th><th class="px-2 py-2 font-bold text-green-600">AKHIR</th></tr></thead>`;
+                let pbUpsBody = '<tbody>';
+                students.forEach((student, index) => {
+                    const studentScores = state.scores[student.matric] || {};
+                    const calculated = calculateScores(student.matric);
+                    pbUpsBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.name}</td>`;
+                    assessmentStructure.pb.forEach(a => { const score = studentScores[a.name]; const scoreDisplay = (score === null || score === undefined) ? '' : score; const weightedScore = (score === null || score === undefined) ? '' : `(${(score / a.fullMarks * a.weightage).toFixed(2)}%)`; pbUpsBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${weightedScore}</span></td>`; });
+                    assessmentStructure.ups.forEach(a => pbUpsBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
+                    pbUpsBody += `<td class="px-2 py-2 font-bold text-blue-600">${calculated.pb.toFixed(2)}</td><td class="px-2 py-2 font-bold text-blue-600">${calculated.ups.toFixed(2)}</td><td class="px-2 py-2 font-bold text-green-600">${(calculated.pb + calculated.ups).toFixed(2)}</td></tr>`;
+                });
+                pbUpsBody += '</tbody>';
+                pbUpsReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${pbUpsHeader}${pbUpsBody}</table></div>`;
+                let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
+                assessmentStructure.topikal.forEach(a => topikalHeader += `<th class="px-2 py-2">${a.name}</th>`);
+                topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR (/100)</th></tr></thead>`;
+                let topikalBody = '<tbody>';
+                students.forEach((student, index) => {
+                    const studentScores = state.scores[student.matric] || {};
+                    const calculated = calculateScores(student.matric);
+                    topikalBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.name}</td>`;
+                    assessmentStructure.topikal.forEach(a => topikalBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
+                    topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${calculated.ut.toFixed(2)}</td>`;
+                    topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${calculated.totalEtr.toFixed(2)}</td></tr>`;
+                });
+                topikalBody += '</tbody>';
+                topikalReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${topikalHeader}${topikalBody}</table></div>`;
+            }
+
+            function updatePrintableArea() {
+                if (!pbUpsReportDisplay.classList.contains('hidden')) { pbUpsReportDisplay.classList.add('printable-area'); topikalReportDisplay.classList.remove('printable-area'); } 
+                else { topikalReportDisplay.classList.add('printable-area'); pbUpsReportDisplay.classList.remove('printable-area'); }
+            }
+
+            // --- Event Listeners ---
+            classSelectEl.addEventListener('change', (e) => {
+                state.currentClass = e.target.value;
+                localStorage.setItem('currentClass_supabase_v1', state.currentClass);
+                updateOnClassChange();
+            });
+            
+            assessmentSelectEl.addEventListener('change', renderMarkEntryTable);
+
+            markEntryBody.addEventListener('change', (e) => {
+                if (e.target.classList.contains('score-input')) {
+                    const studentMatric = e.target.dataset.studentMatric;
+                    const assessmentName = assessmentSelectEl.value;
+                    const score = e.target.value;
                     if (!state.scores[studentMatric]) state.scores[studentMatric] = {};
-                    state.scores[studentMatric][assessmentName] = mark.trim() === '' ? null : parseFloat(mark.trim());
+                    state.scores[studentMatric][assessmentName] = score === '' ? null : parseFloat(score);
                 }
             });
-             // Markah tidak disimpan di sini, tunggu butang Simpan ditekan
+            
+            markEntryBody.addEventListener('paste', (e) => {
+                if (!e.target.classList.contains('score-input')) return;
+                e.preventDefault();
+                const text = e.clipboardData.getData('text/plain');
+                const marks = text.split(/\r?\n/).filter(m => m.trim() !== '');
+                const allInputs = Array.from(markEntryBody.querySelectorAll('.score-input'));
+                let startIndex = allInputs.indexOf(e.target);
+                const assessmentName = assessmentSelectEl.value;
+                marks.forEach((mark, i) => {
+                    let currentIndex = startIndex + i;
+                    if (currentIndex < allInputs.length) {
+                        const currentInput = allInputs[currentIndex];
+                        const studentMatric = currentInput.dataset.studentMatric;
+                        currentInput.value = mark.trim();
+                        if (!state.scores[studentMatric]) state.scores[studentMatric] = {};
+                        state.scores[studentMatric][assessmentName] = mark.trim() === '' ? null : parseFloat(mark.trim());
+                    }
+                });
+            });
+
+            saveMarksBtn.addEventListener('click', saveScoresToSupabase);
+
+            tabEntry.addEventListener('click', () => {
+                entryContent.classList.remove('hidden'); reportContentArea.classList.add('hidden');
+                tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
+                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+            });
+
+            tabReport.addEventListener('click', () => {
+                reportContentArea.classList.remove('hidden'); entryContent.classList.add('hidden');
+                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
+                tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+                renderAllClassReports();
+                updatePrintableArea();
+            });
+
+            tabReportPbUps.addEventListener('click', () => {
+                pbUpsReportDisplay.classList.remove('hidden'); topikalReportDisplay.classList.add('hidden');
+                tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
+                tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
+                updatePrintableArea();
+            });
+
+            tabReportTopikal.addEventListener('click', () => {
+                topikalReportDisplay.classList.remove('hidden'); pbUpsReportDisplay.classList.add('hidden');
+                tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
+                tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
+                updatePrintableArea();
+            });
+
+            printClassReportBtn.addEventListener('click', () => window.print());
+
+            async function startApp() {
+                await initializeAndFetchData();
+                renderClassSelector();
+                updatePrintableArea();
+            }
+
+            startApp();
+
         });
-
-        saveMarksBtn.addEventListener('click', saveScoresToFirebase);
-
-        tabEntry.addEventListener('click', () => {
-            entryContent.classList.remove('hidden'); reportContentArea.classList.add('hidden');
-            tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
-            tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-        });
-
-        tabReport.addEventListener('click', () => {
-            reportContentArea.classList.remove('hidden'); entryContent.classList.add('hidden');
-            tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
-            tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-            renderAllClassReports();
-            updatePrintableArea();
-        });
-
-        tabReportPbUps.addEventListener('click', () => {
-            pbUpsReportDisplay.classList.remove('hidden'); topikalReportDisplay.classList.add('hidden');
-            tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
-            tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
-            updatePrintableArea();
-        });
-
-        tabReportTopikal.addEventListener('click', () => {
-            topikalReportDisplay.classList.remove('hidden'); pbUpsReportDisplay.classList.add('hidden');
-            tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
-            tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
-            updatePrintableArea();
-        });
-
-        printClassReportBtn.addEventListener('click', () => window.print());
-
-        async function startApp() {
-            await initializeAndFetchData();
-            renderClassSelector();
-            updatePrintableArea();
-        }
-
-        startApp();
-
     </script>
 </body>
 </html>
