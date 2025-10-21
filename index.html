@@ -32,13 +32,11 @@
 
         /* Gaya untuk cetakan laporan */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #print-container, #print-container * {
-                visibility: visible;
+            body > *:not(#print-container) {
+                display: none;
             }
             #print-container {
+                display: block;
                 position: absolute;
                 left: 0;
                 top: 0;
@@ -155,7 +153,7 @@
     </div>
     
     <!-- Bahagian Khas untuk Cetakan -->
-    <div id="print-container" class="hidden"></div>
+    <div id="print-container"></div>
 
 
     <script>
@@ -419,9 +417,16 @@
                 const studentScores = state.scores[studentMatric] || {};
                 const results = { pb: 0, ups: 0, ut: 0, totalEtr: 0 };
                 assessmentStructure.pb.forEach(ass => { const score = parseFloat(studentScores[ass.name] || 0); if (!isNaN(score)) results.pb += (score / ass.fullMarks) * ass.weightage; });
-                let totalUpsPercentage = 0, upsCount = 0;
-                assessmentStructure.ups.forEach(ass => { const score = parseFloat(studentScores[ass.name]); if (!isNaN(score)) { totalUpsPercentage += (score / ass.fullMarks) * 100; upsCount++; } });
-                if (upsCount > 0) results.ups = (totalUpsPercentage / upsCount) * (totalWeightageUPS / 100);
+                let totalUpsScore = 0, totalUpsFullMarks = 0;
+                assessmentStructure.ups.forEach(ass => { 
+                    const score = parseFloat(studentScores[ass.name]); 
+                    if (!isNaN(score)) {
+                        totalUpsScore += score;
+                        totalUpsFullMarks += ass.fullMarks;
+                    }
+                });
+                if(totalUpsFullMarks > 0) results.ups = (totalUpsScore / totalUpsFullMarks) * totalWeightageUPS;
+
                 let totalTopikalPercentage = 0, topikalCount = 0;
                 assessmentStructure.topikal.forEach(ass => { const score = parseFloat(studentScores[ass.name]); if (!isNaN(score)) { totalTopikalPercentage += (score / ass.fullMarks) * 100; topikalCount++; } });
                 if (topikalCount > 0) results.ut = (totalTopikalPercentage / topikalCount) * (totalWeightageTopikal / 100);
@@ -536,8 +541,8 @@
             function prepareAndPrint() {
                 const lecturerName = state.classToLecturer[state.currentClass] || 'Tidak Ditetapkan';
                 const className = state.currentClass;
-                const reportTitle = tabReportPbUps.classList.contains('border-blue-600') ? 'Laporan Penilaian Berterusan & UPS' : 'Laporan Ujian Topikal (ETR)';
-                const activeReportContent = tabReportPbUps.classList.contains('border-blue-600') ? pbUpsReportDisplay.innerHTML : topikalReportDisplay.innerHTML;
+                const reportTitle = !pbUpsReportDisplay.classList.contains('hidden') ? 'Laporan Penilaian Berterusan & UPS' : 'Laporan Ujian Topikal (ETR)';
+                const activeReportContent = !pbUpsReportDisplay.classList.contains('hidden') ? pbUpsReportDisplay.innerHTML : topikalReportDisplay.innerHTML;
 
                 const printHTML = `
                     <div class="space-y-4">
