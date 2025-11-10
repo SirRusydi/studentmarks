@@ -107,7 +107,7 @@
                 </div>
                  
                 <div>
-                     <label for="class-select" class="block text-sm font-medium text-slate-700">1. Pilih Kelas</label>
+                     <label for="class-select" class="block text-sm font-medium text-slate-700">1. Pilih Kelas Aktif (untuk Kemasukan Markah & Laporan)</label>
                     <select id="class-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
                 </div>
                  <p id="connection-status" class="text-sm mt-2 text-slate-500">Status: Memulakan sistem...</p>
@@ -118,7 +118,10 @@
                  <!-- Tab Navigation -->
                 <div class="border-b border-gray-200">
                     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                        <button id="tab-entry" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center">
+                        <button id="tab-dashboard" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center">
+                             <i data-lucide="layout-dashboard" class="mr-2 h-5 w-5"></i> Dashboard
+                        </button>
+                        <button id="tab-entry" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center">
                              <i data-lucide="edit" class="mr-2 h-5 w-5"></i> Kemasukan Markah
                         </button>
                         <button id="tab-report" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center">
@@ -127,8 +130,24 @@
                     </nav>
                 </div>
 
-                <!-- Tab 1: Kemasukan Markah -->
-                <div id="entry-content" class="mt-6">
+                <!-- Tab 1: Dashboard Pengisian Markah -->
+                <div id="dashboard-content" class="mt-6">
+                    <h3 class="text-lg font-semibold text-slate-800">Status Pengisian Markah</h3>
+                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan status pengisian markah untuk semua kelas anda.</p>
+                    <div class="overflow-x-auto mt-4">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead id="dashboard-table-head" class="bg-slate-50">
+                                <!-- Header akan dijana oleh JS -->
+                            </thead>
+                            <tbody id="dashboard-table-body" class="bg-white divide-y divide-slate-200">
+                                <!-- Status akan dijana oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Kemasukan Markah -->
+                <div id="entry-content" class="mt-6 hidden">
                     <div class="max-w-md">
                         <label for="assessment-select" class="block text-sm font-medium text-slate-700">2. Pilih Penilaian untuk Diisi</label>
                         <select id="assessment-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
@@ -154,7 +173,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: Laporan Kelas -->
+                <!-- Tab 3: Laporan Kelas -->
                 <div id="report-content-area" class="mt-6 hidden">
                      <div class="border-b border-gray-200">
                         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
@@ -239,10 +258,18 @@
             const lecturerDisplayEl = document.getElementById('lecturer-display');
             const programDisplayEl = document.getElementById('program-display');
             const mainContentEl = document.getElementById('main-content');
+            
+            const tabDashboard = document.getElementById('tab-dashboard');
             const tabEntry = document.getElementById('tab-entry');
             const tabReport = document.getElementById('tab-report');
+            
+            const dashboardContent = document.getElementById('dashboard-content');
             const entryContent = document.getElementById('entry-content');
             const reportContentArea = document.getElementById('report-content-area');
+
+            const dashboardTableHead = document.getElementById('dashboard-table-head');
+            const dashboardTableBody = document.getElementById('dashboard-table-body');
+            
             const reportClassNameEl = document.getElementById('report-class-name');
             const assessmentSelectEl = document.getElementById('assessment-select');
             const markEntryArea = document.getElementById('mark-entry-area');
@@ -259,10 +286,10 @@
             const printContainer = document.getElementById('print-container');
 
             let state = {
-                lecturerDetails: null, // { NamaPensyarah, Email, KelasDiajar: [], Program }
-                allStudents: [], // { Kelas, NamaPelajar, NoMatrik, Program }
-                classes: {}, // Students filtered by lecturer
-                scores: {}, 
+                lecturerDetails: null, 
+                allStudents: [], 
+                classes: {}, 
+                scores: {}, // Akan diisi: { "K1T1": { "MS123": { ... } }, "K2T2": { ... } }
                 currentClass: null,
                 currentProgram: null,
             };
@@ -283,12 +310,16 @@
                     alert('Sila masukkan URL dan Kunci Supabase di dalam kod sumber.');
                     return;
                 }
+                
+                // Hanya simpan data untuk kelas semasa
+                const classScores = state.scores[state.currentClass] || {};
+                
                 const { error } = await supabaseClient
                     .from('scores')
                     .upsert({ 
                         class_name: state.currentClass, 
                         program: state.currentProgram, 
-                        scores_data: state.scores 
+                        scores_data: classScores
                     }, { onConflict: 'class_name, program' });
 
                 if (error) {
@@ -299,54 +330,53 @@
                 }
             }
             
-            async function listenForScores() {
+            async function loadAndListenToScores() {
                 if (channel) {
                     supabaseClient.removeChannel(channel);
                 }
-                if (!state.currentClass || !state.currentProgram) {
-                    state.scores = {};
-                    renderMarkEntryTable();
-                    return;
-                }
+                if (!state.currentProgram || !state.lecturerDetails) return;
                  if (SUPABASE_URL === 'URL_PROJEK_SUPABASE_ANDA') return;
 
-                // Fetch initial data
+                // 1. Fetch data untuk SEMUA kelas pensyarah
                 const { data, error } = await supabaseClient
                     .from('scores')
-                    .select('scores_data')
-                    .eq('class_name', state.currentClass)
-                    .eq('program', state.currentProgram)
-                    .single();
+                    .select('class_name, scores_data')
+                    .in('class_name', state.lecturerDetails.KelasDiajar)
+                    .eq('program', state.currentProgram);
 
-                if (data) {
-                    state.scores = data.scores_data || {};
-                    console.log("Markah dimuat turun dari Supabase.");
-                } else {
-                    console.log("Tiada data markah sedia ada untuk kelas ini.");
-                    state.scores = {};
-                }
-                 if (error && error.code !== 'PGRST116') { // Ignore "No rows found" error
+                if (error) {
                     console.error("Error fetching scores:", error);
+                } else {
+                    state.scores = {}; // Reset
+                    data.forEach(row => {
+                        state.scores[row.class_name] = row.scores_data || {};
+                    });
+                    console.log("Markah untuk semua kelas telah dimuat turun.");
                 }
 
+                // Muat semula semua paparan
+                renderDashboard();
                 renderMarkEntryTable();
                 if(!reportContentArea.classList.contains('hidden')) {
                     renderAllClassReports();
                 }
 
-                // Listen for real-time changes
-                channel = supabaseClient.channel(`scores_${state.currentProgram}_${state.currentClass}`)
+                // 2. Dengar perubahan untuk SEMUA kelas pensyarah
+                const classFilters = state.lecturerDetails.KelasDiajar.map(cls => `class_name=eq.${cls}`).join(',');
+                channel = supabaseClient.channel(`scores_program_${state.currentProgram}`)
                     .on('postgres_changes', {
                         event: '*',
                         schema: 'public',
                         table: 'scores',
-                        filter: `class_name=eq.${state.currentClass}&program=eq.${state.currentProgram}`
+                        filter: `program=eq.${state.currentProgram}`
                     }, payload => {
                         console.log('Perubahan diterima dari Supabase!', payload);
-                        if (payload.new) {
-                            state.scores = payload.new.scores_data || {};
+                        if (payload.new && state.lecturerDetails.KelasDiajar.includes(payload.new.class_name)) {
+                            state.scores[payload.new.class_name] = payload.new.scores_data || {};
+                            // Muat semula semua paparan
+                            renderDashboard();
                             renderMarkEntryTable();
-                             if(!reportContentArea.classList.contains('hidden')) {
+                            if(!reportContentArea.classList.contains('hidden')) {
                                 renderAllClassReports();
                             }
                         }
@@ -398,7 +428,7 @@
                 }
                 
                 const firstRow = lecturerRows[0];
-                const lecturerClasses = lecturerRows.map(row => row.KelasDiajar.trim());
+                const lecturerClasses = [...new Set(lecturerRows.map(row => row.KelasDiajar.trim()))]; // Pastikan kelas unik
 
                 state.lecturerDetails = {
                     NamaPensyarah: firstRow.NamaPensyarah,
@@ -423,10 +453,10 @@
                 connectionStatusEl.textContent = 'Status: Data berjaya dimuat turun!';
                 connectionStatusEl.className = 'text-sm mt-2 text-green-600';
                 
-                renderApp();
+                await renderApp();
             }
 
-            function renderApp() {
+            async function renderApp() {
                 lecturerDisplayEl.textContent = state.lecturerDetails.NamaPensyarah;
                 programDisplayEl.textContent = state.lecturerDetails.Program;
                 
@@ -444,7 +474,9 @@
                     state.currentClass = lastClass;
                 }
                 
-                updateOnClassChange();
+                await loadAndListenToScores(); // Muat turun semua markah
+                updateOnClassChange(); // Kemaskini UI berdasarkan kelas yang dipilih
+                renderDashboard(); // Papar dashboard
             }
 
             function updateOnClassChange() {
@@ -452,7 +484,7 @@
                 if(selectedClass) {
                     mainContentEl.classList.remove('hidden');
                     renderAssessmentSelector();
-                    listenForScores(); 
+                    renderMarkEntryTable(); // Paparkan jadual markah untuk kelas yg dipilih
                     if (!reportContentArea.classList.contains('hidden')) {
                         renderAllClassReports();
                     }
@@ -483,8 +515,10 @@
                 markEntryHead.innerHTML = `<tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Bil.</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Pelajar</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">No. Matrik</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Markah (/ ${assessment.fullMarks})</th></tr>`;
                 markEntryBody.innerHTML = '';
                 const students = state.classes[state.currentClass]?.students || [];
+                const classScores = state.scores[state.currentClass] || {};
+                
                 students.forEach((student, index) => {
-                    const studentScores = state.scores[student.NoMatrik] || {};
+                    const studentScores = classScores[student.NoMatrik] || {};
                     const score = studentScores[assessment.name] === null || studentScores[assessment.name] === undefined ? '' : studentScores[assessment.name];
                     const row = document.createElement('tr');
                     row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${index + 1}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${student.NamaPelajar}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${student.NoMatrik}</td><td class="px-6 py-4"><input type="number" class="score-input w-24 rounded-md border-slate-300" data-student-matric="${student.NoMatrik}" value="${score}"></td>`;
@@ -493,8 +527,9 @@
                 markEntryArea.classList.remove('hidden');
             }
             
-            function calculateScores(studentMatric) {
-                const studentScores = state.scores[studentMatric] || {};
+            function calculateScores(className, studentMatric) {
+                const classScores = state.scores[className] || {};
+                const studentScores = classScores[studentMatric] || {};
                 const results = { pb: 0, ups: 0, ut: 0, totalEtr: 0 };
                 currentAssessmentStructure.pb.forEach(ass => { const score = parseFloat(studentScores[ass.name] || 0); if (!isNaN(score)) results.pb += (score / ass.fullMarks) * ass.weightage; });
                 
@@ -519,14 +554,16 @@
                 if (!state.currentClass || !state.classes[state.currentClass]) { pbUpsReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; topikalReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; return; }
                 reportClassNameEl.textContent = state.currentClass;
                 const students = state.classes[state.currentClass].students;
+                const classScores = state.scores[state.currentClass] || {};
+
                 let pbUpsHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
                 currentAssessmentStructure.pb.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
                 currentAssessmentStructure.ups.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
                 pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">Jml PB</th><th class="px-2 py-2 font-bold text-blue-600">Jml UPS</th><th class="px-2 py-2 font-bold text-green-600">AKHIR</th></tr></thead>`;
                 let pbUpsBody = '<tbody>';
                 students.forEach((student, index) => {
-                    const studentScores = state.scores[student.NoMatrik] || {};
-                    const calculated = calculateScores(student.NoMatrik);
+                    const studentScores = classScores[student.NoMatrik] || {};
+                    const calculated = calculateScores(state.currentClass, student.NoMatrik);
                     pbUpsBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
                     currentAssessmentStructure.pb.forEach(a => { const score = studentScores[a.name]; const scoreDisplay = (score === null || score === undefined) ? '' : score; const weightedScore = (score === null || score === undefined) ? '' : `(${(score / a.fullMarks * a.weightage).toFixed(2)}%)`; pbUpsBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${weightedScore}</span></td>`; });
                     currentAssessmentStructure.ups.forEach(a => pbUpsBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
@@ -534,13 +571,14 @@
                 });
                 pbUpsBody += '</tbody>';
                 pbUpsReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${pbUpsHeader}${pbUpsBody}</table></div>`;
+                
                 let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
                 currentAssessmentStructure.topikal.forEach(a => topikalHeader += `<th class="px-2 py-2">${a.name}</th>`);
                 topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR (/100)</th></tr></thead>`;
                 let topikalBody = '<tbody>';
                 students.forEach((student, index) => {
-                    const studentScores = state.scores[student.NoMatrik] || {};
-                    const calculated = calculateScores(student.NoMatrik);
+                    const studentScores = classScores[student.NoMatrik] || {};
+                    const calculated = calculateScores(state.currentClass, student.NoMatrik);
                     topikalBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
                     currentAssessmentStructure.topikal.forEach(a => topikalBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
                     topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${calculated.ut.toFixed(2)}</td>`;
@@ -548,6 +586,52 @@
                 });
                 topikalBody += '</tbody>';
                 topikalReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${topikalHeader}${topikalBody}</table></div>`;
+            }
+
+            function renderDashboard() {
+                // Hasilkan Header
+                let headHTML = `<tr><th rowspan="2" class="px-2 py-2 text-left text-xs font-medium text-slate-500 uppercase sticky left-0 bg-slate-50 z-10">Kelas</th>`;
+                headHTML += `<th colspan="${currentAssessmentStructure.topikal.length}" class="px-2 py-2 text-xs font-medium text-slate-500 uppercase bg-slate-100">Ujian Topikal</th>`;
+                headHTML += `<th colspan="${currentAssessmentStructure.pb.length}" class="px-2 py-2 text-xs font-medium text-slate-500 uppercase bg-slate-200">Penilaian Berterusan (PB)</th>`;
+                headHTML += `<th colspan="${currentAssessmentStructure.ups.length}" class="px-2 py-2 text-xs font-medium text-slate-500 uppercase bg-slate-100">Ujian Penilaian Sumatif (UPS)</th></tr>`;
+                headHTML += `<tr>`;
+                allAssessments.forEach(ass => {
+                    headHTML += `<th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">${ass.name}</th>`;
+                });
+                headHTML += `</tr>`;
+                dashboardTableHead.innerHTML = headHTML;
+
+                // Hasilkan Body
+                let bodyHTML = '';
+                state.lecturerDetails.KelasDiajar.forEach(className => {
+                    bodyHTML += `<tr class="bg-white border-b"><td class="px-2 py-2 text-left font-medium text-slate-900 sticky left-0 bg-white">${className}</td>`;
+                    const students = state.classes[className]?.students || [];
+                    const classScores = state.scores[className] || {};
+
+                    allAssessments.forEach(ass => {
+                        let isComplete = true;
+                        if (students.length === 0) {
+                            isComplete = false; // Anggap tidak lengkap jika tiada pelajar
+                        } else {
+                            for (const student of students) {
+                                const studentScores = classScores[student.NoMatrik] || {};
+                                const score = studentScores[ass.name];
+                                if (score === null || score === undefined || score === '') {
+                                    isComplete = false;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if(isComplete) {
+                            bodyHTML += `<td class="px-2 py-2 text-center text-green-600 font-semibold">✅</td>`;
+                        } else {
+                            bodyHTML += `<td class="px-2 py-2 text-center text-red-600">❌</td>`;
+                        }
+                    });
+                    bodyHTML += `</tr>`;
+                });
+                dashboardTableBody.innerHTML = bodyHTML;
             }
 
             // --- Event Listeners ---
@@ -564,8 +648,9 @@
                     const studentMatric = e.target.dataset.studentMatric;
                     const assessmentName = assessmentSelectEl.value;
                     const score = e.target.value;
-                    if (!state.scores[studentMatric]) state.scores[studentMatric] = {};
-                    state.scores[studentMatric][assessmentName] = score === '' ? null : parseFloat(score);
+                    if (!state.scores[state.currentClass]) state.scores[state.currentClass] = {};
+                    if (!state.scores[state.currentClass][studentMatric]) state.scores[state.currentClass][studentMatric] = {};
+                    state.scores[state.currentClass][studentMatric][assessmentName] = score === '' ? null : parseFloat(score);
                 }
             });
             
@@ -577,34 +662,60 @@
                 const allInputs = Array.from(markEntryBody.querySelectorAll('.score-input'));
                 let startIndex = allInputs.indexOf(e.target);
                 const assessmentName = assessmentSelectEl.value;
+                
+                if (!state.scores[state.currentClass]) state.scores[state.currentClass] = {};
+
                 marks.forEach((mark, i) => {
                     let currentIndex = startIndex + i;
                     if (currentIndex < allInputs.length) {
                         const currentInput = allInputs[currentIndex];
                         const studentMatric = currentInput.dataset.studentMatric;
                         currentInput.value = mark.trim();
-                        if (!state.scores[studentMatric]) state.scores[studentMatric] = {};
-                        state.scores[studentMatric][assessmentName] = mark.trim() === '' ? null : parseFloat(mark.trim());
+                        if (!state.scores[state.currentClass][studentMatric]) state.scores[state.currentClass][studentMatric] = {};
+                        state.scores[state.currentClass][studentMatric][assessmentName] = mark.trim() === '' ? null : parseFloat(mark.trim());
                     }
                 });
             });
 
             saveMarksBtn.addEventListener('click', saveScoresToSupabase);
 
+            // Pengurusan Tab Utama
+            tabDashboard.addEventListener('click', () => {
+                dashboardContent.classList.remove('hidden');
+                entryContent.classList.add('hidden'); 
+                reportContentArea.classList.add('hidden');
+                
+                tabDashboard.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
+                tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+                
+                renderDashboard(); // Sentiasa kemaskini dashboard apabila diklik
+            });
+
             tabEntry.addEventListener('click', () => {
-                entryContent.classList.remove('hidden'); reportContentArea.classList.add('hidden');
+                dashboardContent.classList.add('hidden');
+                entryContent.classList.remove('hidden'); 
+                reportContentArea.classList.add('hidden');
+                
+                tabDashboard.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
                 tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
                 tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
             });
 
             tabReport.addEventListener('click', () => {
-                reportContentArea.classList.remove('hidden'); entryContent.classList.add('hidden');
-                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
+                dashboardContent.classList.add('hidden');
+                entryContent.classList.add('hidden'); 
+                reportContentArea.classList.remove('hidden');
+
+                tabDashboard.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
                 tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
+                
                 renderAllClassReports();
                 updatePrintableArea();
             });
 
+            // Pengurusan Sub-Tab Laporan
             tabReportPbUps.addEventListener('click', () => {
                 pbUpsReportDisplay.classList.remove('hidden'); topikalReportDisplay.classList.add('hidden');
                 tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
