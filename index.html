@@ -29,6 +29,14 @@
         .hidden {
             display: none;
         }
+        /* Jadikan sel dashboard boleh diklik */
+        #dashboard-table-body td {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #dashboard-table-body td:hover {
+            background-color: #f0f9ff; /* sky-50 */
+        }
 
         /* Gaya untuk cetakan laporan */
         @media print {
@@ -107,8 +115,8 @@
                 </div>
                  
                 <div>
-                     <label for="class-select" class="block text-sm font-medium text-slate-700">1. Pilih Kelas Aktif (untuk Kemasukan Markah & Laporan)</label>
-                    <select id="class-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
+                     <label class="block text-sm font-medium text-slate-700">Kelas Aktif</label>
+                     <p id="active-class-display" class="mt-1 text-lg font-semibold text-blue-600 h-10 flex items-center">-- Sila pilih dari dashboard --</p>
                 </div>
                  <p id="connection-status" class="text-sm mt-2 text-slate-500">Status: Memulakan sistem...</p>
             </section>
@@ -133,7 +141,7 @@
                 <!-- Tab 1: Dashboard Pengisian Markah -->
                 <div id="dashboard-content" class="mt-6">
                     <h3 class="text-lg font-semibold text-slate-800">Status Pengisian Markah</h3>
-                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan status pengisian markah untuk semua kelas anda.</p>
+                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan status pengisian markah untuk semua kelas anda. Klik pada sel (✅/❌) untuk terus mengisi markah.</p>
                     <div class="overflow-x-auto mt-4">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead id="dashboard-table-head" class="bg-slate-50">
@@ -254,9 +262,9 @@
             const logoutBtn = document.getElementById('logout-btn');
 
             const connectionStatusEl = document.getElementById('connection-status');
-            const classSelectEl = document.getElementById('class-select');
             const lecturerDisplayEl = document.getElementById('lecturer-display');
             const programDisplayEl = document.getElementById('program-display');
+            const activeClassDisplayEl = document.getElementById('active-class-display');
             const mainContentEl = document.getElementById('main-content');
             
             const tabDashboard = document.getElementById('tab-dashboard');
@@ -460,36 +468,25 @@
                 lecturerDisplayEl.textContent = state.lecturerDetails.NamaPensyarah;
                 programDisplayEl.textContent = state.lecturerDetails.Program;
                 
-                classSelectEl.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-                state.lecturerDetails.KelasDiajar.forEach(className => {
-                    const option = document.createElement('option');
-                    option.value = className;
-                    option.textContent = className;
-                    classSelectEl.appendChild(option);
-                });
-                
                 const lastClass = localStorage.getItem('currentClass_supabase_v1');
                 if(lastClass && state.lecturerDetails.KelasDiajar.includes(lastClass)) {
-                    classSelectEl.value = lastClass;
                     state.currentClass = lastClass;
                 }
                 
                 await loadAndListenToScores(); // Muat turun semua markah
-                updateOnClassChange(); // Kemaskini UI berdasarkan kelas yang dipilih
+                updateActiveClassDisplay(); // Kemaskini UI berdasarkan kelas yang dipilih
                 renderDashboard(); // Papar dashboard
+                renderAssessmentSelector(); // Sediakan dropdown
+                
+                mainContentEl.classList.remove('hidden'); // Tunjukkan bahagian utama
+                switchTab('dashboard'); // Tetapkan dashboard sebagai tab lalai
             }
-
-            function updateOnClassChange() {
-                const selectedClass = state.currentClass;
-                if(selectedClass) {
-                    mainContentEl.classList.remove('hidden');
-                    renderAssessmentSelector();
-                    renderMarkEntryTable(); // Paparkan jadual markah untuk kelas yg dipilih
-                    if (!reportContentArea.classList.contains('hidden')) {
-                        renderAllClassReports();
-                    }
+            
+            function updateActiveClassDisplay() {
+                if (state.currentClass) {
+                    activeClassDisplayEl.textContent = state.currentClass;
                 } else {
-                    mainContentEl.classList.add('hidden');
+                    activeClassDisplayEl.textContent = '-- Sila pilih dari dashboard --';
                 }
             }
 
@@ -596,7 +593,7 @@
                 headHTML += `<th colspan="${currentAssessmentStructure.ups.length}" class="px-2 py-2 text-xs font-medium text-slate-500 uppercase bg-slate-100">Ujian Penilaian Sumatif (UPS)</th></tr>`;
                 headHTML += `<tr>`;
                 allAssessments.forEach(ass => {
-                    headHTML += `<th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">${ass.name}</th>`;
+                    headHTML += `<th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase" data-assessment-name="${ass.name}">${ass.name}</th>`;
                 });
                 headHTML += `</tr>`;
                 dashboardTableHead.innerHTML = headHTML;
@@ -604,7 +601,7 @@
                 // Hasilkan Body
                 let bodyHTML = '';
                 state.lecturerDetails.KelasDiajar.forEach(className => {
-                    bodyHTML += `<tr class="bg-white border-b"><td class="px-2 py-2 text-left font-medium text-slate-900 sticky left-0 bg-white">${className}</td>`;
+                    bodyHTML += `<tr class="bg-white border-b" data-class-name="${className}"><td class="px-2 py-2 text-left font-medium text-slate-900 sticky left-0 bg-white">${className}</td>`;
                     const students = state.classes[className]?.students || [];
                     const classScores = state.scores[className] || {};
 
@@ -624,9 +621,9 @@
                         }
                         
                         if(isComplete) {
-                            bodyHTML += `<td class="px-2 py-2 text-center text-green-600 font-semibold">✅</td>`;
+                            bodyHTML += `<td class="px-2 py-2 text-center text-green-600 text-xl">✅</td>`;
                         } else {
-                            bodyHTML += `<td class="px-2 py-2 text-center text-red-600">❌</td>`;
+                            bodyHTML += `<td class="px-2 py-2 text-center text-red-600 text-xl">❌</td>`;
                         }
                     });
                     bodyHTML += `</tr>`;
@@ -635,11 +632,8 @@
             }
 
             // --- Event Listeners ---
-            classSelectEl.addEventListener('change', (e) => {
-                state.currentClass = e.target.value;
-                localStorage.setItem('currentClass_supabase_v1', state.currentClass);
-                updateOnClassChange();
-            });
+            
+            // Dibuang: classSelectEl.addEventListener('change', ...)
             
             assessmentSelectEl.addEventListener('change', renderMarkEntryTable);
 
@@ -680,40 +674,88 @@
             saveMarksBtn.addEventListener('click', saveScoresToSupabase);
 
             // Pengurusan Tab Utama
+            function switchTab(activeTab) {
+                const tabs = { dashboard: tabDashboard, entry: tabEntry, report: tabReport };
+                const contents = { dashboard: dashboardContent, entry: entryContent, report: reportContentArea };
+
+                for (const key in tabs) {
+                    if (key === activeTab) {
+                        tabs[key].className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
+                        contents[key].classList.remove('hidden');
+                    } else {
+                        tabs[key].className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+                        contents[key].classList.add('hidden');
+                    }
+                }
+            }
+
             tabDashboard.addEventListener('click', () => {
-                dashboardContent.classList.remove('hidden');
-                entryContent.classList.add('hidden'); 
-                reportContentArea.classList.add('hidden');
-                
-                tabDashboard.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
-                tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-                
-                renderDashboard(); // Sentiasa kemaskini dashboard apabila diklik
+                switchTab('dashboard');
+                renderDashboard();
             });
 
             tabEntry.addEventListener('click', () => {
-                dashboardContent.classList.add('hidden');
-                entryContent.classList.remove('hidden'); 
-                reportContentArea.classList.add('hidden');
-                
-                tabDashboard.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-                tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
-                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+                if (!state.currentClass) {
+                    alert("Sila pilih kelas dari dashboard dahulu.");
+                    return;
+                }
+                switchTab('entry');
             });
 
             tabReport.addEventListener('click', () => {
-                dashboardContent.classList.add('hidden');
-                entryContent.classList.add('hidden'); 
-                reportContentArea.classList.remove('hidden');
-
-                tabDashboard.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-                tabEntry.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-                tabReport.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
-                
+                if (!state.currentClass) {
+                    alert("Sila pilih kelas dari dashboard dahulu.");
+                    return;
+                }
+                switchTab('report');
                 renderAllClassReports();
                 updatePrintableArea();
             });
+            
+            // Listener untuk Dashboard Interaktif
+            dashboardTableBody.addEventListener('click', (e) => {
+                const cell = e.target.closest('td');
+                if (!cell) return; 
+
+                const row = cell.closest('tr');
+                const className = row.dataset.className;
+                if (!className) return;
+
+                // Tetapkan kelas aktif pada SEBARANG klik dalam baris
+                state.currentClass = className;
+                localStorage.setItem('currentClass_supabase_v1', state.currentClass);
+                
+                // Panggil updateOnClassChange untuk memuatkan skor kelas ini
+                updateActiveClassDisplay(); 
+                
+                // Sembunyikan tetingkap utama buat sementara
+                mainContentEl.classList.add('hidden');
+                // Panggil listenForScores untuk pastikan data kelas semasa dimuatkan
+                listenForScores().then(() => {
+                    // Paparkan semula tetingkap utama selepas data dimuatkan
+                    mainContentEl.classList.remove('hidden');
+                    
+                    if (cell.cellIndex === 0) { 
+                        // Pengguna mengklik nama kelas.
+                        // Bawa pengguna ke tab Laporan secara lalai
+                        switchTab('report');
+                        renderAllClassReports();
+                        updatePrintableArea();
+                    } else {
+                        // Pengguna mengklik ikon (jalan pintas)
+                        const assessmentName = dashboardTableHead.querySelector(`tr:nth-child(2) th:nth-child(${cell.cellIndex + 1})`).dataset.assessmentName;
+                        if (!assessmentName) return;
+
+                        // 1. Tukar ke tab Kemasukan Markah
+                        switchTab('entry');
+                        
+                        // 2. Tetapkan penilaian
+                        assessmentSelectEl.value = assessmentName;
+                        renderMarkEntryTable(); // Paparkan jadual
+                    }
+                });
+            });
+
 
             // Pengurusan Sub-Tab Laporan
             tabReportPbUps.addEventListener('click', () => {
@@ -731,6 +773,10 @@
             });
             
             function prepareAndPrint() {
+                if (!state.currentClass) {
+                    alert("Sila pilih kelas dari dashboard terlebih dahulu.");
+                    return;
+                }
                 const lecturerName = state.lecturerDetails.NamaPensyarah || 'Tidak Ditetapkan';
                 const className = state.currentClass;
                 const reportTitle = !pbUpsReportDisplay.classList.contains('hidden') ? 'Laporan Penilaian Berterusan & UPS' : 'Laporan Ujian Topikal (ETR)';
