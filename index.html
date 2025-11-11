@@ -322,19 +322,50 @@
                 // Hanya simpan data untuk kelas semasa
                 const classScores = state.scores[state.currentClass] || {};
                 
-                const { error } = await supabaseClient
+                // Semak dahulu jika data wujud
+                const { data, error: selectError } = await supabaseClient
                     .from('scores')
-                    .upsert({ 
-                        class_name: state.currentClass, 
-                        program: state.currentProgram, 
-                        scores_data: classScores
-                    }, { onConflict: 'class_name, program' });
+                    .select('class_name')
+                    .eq('class_name', state.currentClass)
+                    .eq('program', state.currentProgram)
+                    .single();
 
-                if (error) {
-                    console.error('Error saving scores:', error);
-                    alert(`Ralat menyimpan data: ${error.message}\n\nSila pastikan perkara berikut:\n1. 'Row Level Security (RLS)' telah DIMATIKAN untuk jadual 'scores'.\n2. Lajur 'class_name' dan 'program' telah ditetapkan sebagai 'Primary Key' (Composite).`);
+                if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = tiada baris ditemui, itu OK.
+                    console.error('Error checking for existing class:', selectError);
+                    alert(`Ralat semasa menyemak data: ${selectError.message}`);
+                    return;
+                }
+
+                if (data) {
+                    // Data wujud, jadi KEMAS KINI
+                    const { error: updateError } = await supabaseClient
+                        .from('scores')
+                        .update({ scores_data: classScores })
+                        .eq('class_name', state.currentClass)
+                        .eq('program', state.currentProgram);
+                    
+                    if (updateError) {
+                        console.error('Error updating scores:', updateError);
+                        alert(`Ralat mengemas kini data: ${updateError.message}`);
+                    } else {
+                        showSaveNotification();
+                    }
                 } else {
-                    showSaveNotification();
+                    // Data tidak wujud, jadi MASUKKAN
+                    const { error: insertError } = await supabaseClient
+                        .from('scores')
+                        .insert({ 
+                            class_name: state.currentClass, 
+                            program: state.currentProgram, 
+                            scores_data: classScores 
+                        });
+
+                    if (insertError) {
+                        console.error('Error inserting scores:', insertError);
+                        alert(`Ralat memasukkan data: ${insertError.message}\n\nPastikan 'Row Level Security (RLS)' telah DIMATIKAN.`);
+                    } else {
+                        showSaveNotification();
+                    }
                 }
             }
             
@@ -633,8 +664,6 @@
 
             // --- Event Listeners ---
             
-            // Dibuang: classSelectEl.addEventListener('change', ...)
-            
             assessmentSelectEl.addEventListener('change', renderMarkEntryTable);
 
             markEntryBody.addEventListener('change', (e) => {
@@ -721,39 +750,36 @@
                 const className = row.dataset.className;
                 if (!className) return;
 
-                // Tetapkan kelas aktif pada SEBARANG klik dalam baris
+                // 1. Tetapkan kelas aktif
                 state.currentClass = className;
                 localStorage.setItem('currentClass_supabase_v1', state.currentClass);
                 
-                // Panggil updateOnClassChange untuk memuatkan skor kelas ini
+                // 2. Kemaskini paparan "Kelas Aktif"
                 updateActiveClassDisplay(); 
                 
-                // Sembunyikan tetingkap utama buat sementara
-                mainContentEl.classList.add('hidden');
-                // Panggil listenForScores untuk pastikan data kelas semasa dimuatkan
-                listenForScores().then(() => {
-                    // Paparkan semula tetingkap utama selepas data dimuatkan
-                    mainContentEl.classList.remove('hidden');
-                    
-                    if (cell.cellIndex === 0) { 
-                        // Pengguna mengklik nama kelas.
-                        // Bawa pengguna ke tab Laporan secara lalai
-                        switchTab('report');
-                        renderAllClassReports();
-                        updatePrintableArea();
-                    } else {
-                        // Pengguna mengklik ikon (jalan pintas)
-                        const assessmentName = dashboardTableHead.querySelector(`tr:nth-child(2) th:nth-child(${cell.cellIndex + 1})`).dataset.assessmentName;
-                        if (!assessmentName) return;
+                // 3. Paparkan kandungan utama
+                mainContentEl.classList.remove('hidden');
 
-                        // 1. Tukar ke tab Kemasukan Markah
-                        switchTab('entry');
-                        
-                        // 2. Tetapkan penilaian
-                        assessmentSelectEl.value = assessmentName;
-                        renderMarkEntryTable(); // Paparkan jadual
-                    }
-                });
+                if (cell.cellIndex === 0) { 
+                    // Pengguna mengklik nama kelas.
+                    // Bawa pengguna ke tab Laporan secara lalai
+                    switchTab('report');
+                    renderAllClassReports();
+                    updatePrintableArea();
+                } else {
+                    // Pengguna mengklik ikon (jalan pintas)
+                    const assessmentName = dashboardTableHead.querySelector(`tr:nth-child(2) th:nth-child(${cell.cellIndex})`).dataset.assessmentName;
+                    if (!assessmentName) return;
+
+                    // 1. Tukar ke tab Kemasukan Markah
+                    switchTab('entry');
+                    
+                    // 2. Tetapkan penilaian
+                    assessmentSelectEl.value = assessmentName;
+                    
+                    // 3. Paparkan jadual (data sudah ada dalam state.scores)
+                    renderMarkEntryTable(); 
+                }
             });
 
 
