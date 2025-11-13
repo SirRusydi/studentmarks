@@ -183,7 +183,7 @@
                 <!-- Tab 1: Dashboard Pengisian Markah -->
                 <div id="dashboard-content" class="mt-6">
                     <h3 class="text-lg font-semibold text-slate-800">Status Pengisian Markah</h3>
-                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan status pengisian markah untuk semua kelas anda. Klik pada sel (✅/❌) untuk terus mengisi markah.</p>
+                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan status pengisian markah untuk semua kelas anda. Klik pada sel (✅ Selesai/❌Belum Selesai) untuk terus mengisi markah.</p>
                     <div class="overflow-x-auto mt-4">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead id="dashboard-table-head" class="bg-slate-50">
@@ -199,7 +199,7 @@
                 <!-- Tab 2: Kemasukan Markah -->
                 <div id="entry-content" class="mt-6 hidden">
                     <div class="max-w-md">
-                        <label for="assessment-select" class="block text-sm font-medium text-slate-700">2. Pilih Penilaian untuk Diisi</label>
+                        <label for="assessment-select" class="block text-sm font-medium text-slate-700"> Sila Pilih Penilaian untuk Diisi</label>
                         <select id="assessment-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
                     </div>
                     <div id="mark-entry-area" class="mt-6 hidden">
@@ -289,12 +289,12 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                             <!-- Carta 1: SES -->
                             <div class="bg-white p-6 rounded-lg shadow">
-                                <h4 class="text-lg font-semibold text-slate-700">Program Empat Semester (SES)</h4>
+                                <h4 class="text-lg font-semibold text-slate-700">Sistem Empat Semester (SES)</h4>
                                 <div id="grade-distribution-chart-ses" class="mt-4"></div>
                             </div>
                             <!-- Carta 2: SDS -->
                             <div class="bg-white p-6 rounded-lg shadow">
-                                <h4 class="text-lg font-semibold text-slate-700">Program Dua Semester (SDS)</h4>
+                                <h4 class="text-lg font-semibold text-slate-700">Sistem Dua Semester (SDS)</h4>
                                 <div id="grade-distribution-chart-sds" class="mt-4"></div>
                             </div>
                         </div>
@@ -911,7 +911,7 @@
                 let pbUpsHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
                 structure.pb.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
                 structure.ups.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
-                pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">Jml PB</th><th class="px-2 py-2 font-bold text-blue-600">Jml UPS</th><th class="px-2 py-2 font-bold text-green-600">AKHIR</th></tr></thead>`;
+                pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">PB (40%)</th><th class="px-2 py-2 font-bold text-blue-600">UPS (20%)</th><th class="px-2 py-2 font-bold text-green-600">Jumlah (60%)</th></tr></thead>`;
                 let pbUpsBody = '<tbody>';
                 students.forEach((student, index) => {
                     const studentScores = classScores[student.NoMatrik] || {};
@@ -926,10 +926,10 @@
                 
                 let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
                 structure.topikal.forEach(a => {
-                    topikalHeader += `<th class="px-2 py-2">${a.name} (Markah/%)</th>`;
+                    topikalHeader += `<th class="px-2 py-2">${a.name} (Mrk/%)</th>`;
                     topikalHeader += `<th class="px-2 py-2">${a.name} (Gred)</th>`;
                 });
-                topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR (/100)</th><th class="px-2 py-2 font-bold text-red-600">Gred ETR</th><th class="px-2 py-2 font-bold text-red-600">Status</th></tr></thead>`;
+                topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR 100%</th><th class="px-2 py-2 font-bold text-red-600">Gred</th><th class="px-2 py-2 font-bold text-red-600">Stat</th></tr></thead>`;
                 let topikalBody = '<tbody>';
                 let totalGradePoints = 0;
                 students.forEach((student, index) => {
