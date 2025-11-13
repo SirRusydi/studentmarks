@@ -248,10 +248,27 @@
                 <!-- Tab 4: Analisis Unit (KU & Admin) -->
                 <div id="analysis-content" class="mt-6 hidden">
                     <h3 class="text-lg font-semibold text-slate-800">Analisis Prestasi Keseluruhan (Purata Program)</h3>
-                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan purata pencapaian ETR dan PNGK bagi setiap program.</p>
+                    <p class="text-sm text-slate-500 mt-1">Carta ini menunjukkan purata pencapaian ETR dan PNGK bagi setiap program.</p>
                     
                     <div id="analysis-charts-container" class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                         <!-- Carta akan dijana oleh JS di sini -->
+                    </div>
+
+                    <div class="mt-12">
+                        <h3 class="text-lg font-semibold text-slate-800">Taburan Gred ETR (Mengikut Program)</h3>
+                        <p class="text-sm text-slate-500 mt-1">Carta ini menunjukkan jumlah pelajar bagi setiap gred ETR di semua kelas seliaan anda.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                            <!-- Carta 1: SES -->
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h4 class="text-lg font-semibold text-slate-700">Program Empat Semester (SES)</h4>
+                                <div id="grade-distribution-chart-ses" class="mt-4"></div>
+                            </div>
+                            <!-- Carta 2: SDS -->
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h4 class="text-lg font-semibold text-slate-700">Program Dua Semester (SDS)</h4>
+                                <div id="grade-distribution-chart-sds" class="mt-4"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -968,6 +985,11 @@
                     SDS: { totalPb: 0, totalUps: 0, totalAkhir: 0, totalEtr: 0, totalGradePoints: 0, studentCount: 0 }
                 };
                 
+                let overallGradeDistribution = {
+                    SES: { 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'F': 0 },
+                    SDS: { 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'F': 0 }
+                };
+
                 analysisClasses.sort().forEach(className => {
                     const classData = state.classes[className];
                     if (!classData) return;
@@ -984,6 +1006,9 @@
                             programAnalysis[program].totalEtr += calculated.totalEtr;
                             programAnalysis[program].totalGradePoints += calculated.gradePoint;
                             programAnalysis[program].studentCount += 1;
+                        }
+                        if (overallGradeDistribution[program] && overallGradeDistribution[program].hasOwnProperty(calculated.grade)) {
+                            overallGradeDistribution[program][calculated.grade]++;
                         }
                     });
                 });
@@ -1063,6 +1088,40 @@
                     `;
                     container.innerHTML += cardHTML;
                 });
+                
+                // Jana Carta Taburan Gred
+                renderGradeDistributionChart('grade-distribution-chart-ses', overallGradeDistribution.SES);
+                renderGradeDistributionChart('grade-distribution-chart-sds', overallGradeDistribution.SDS);
+            }
+
+            function renderGradeDistributionChart(containerId, gradeData) {
+                const chartContainer = document.getElementById(containerId);
+                if (!chartContainer) return;
+                
+                const maxCount = Math.max(...Object.values(gradeData)) || 1; // Elak pembahagian dengan 0
+                const grades = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F'];
+                
+                let chartHTML = '<div class="flex justify-between items-end h-64 space-x-2 border-b border-slate-300 pb-2">';
+                
+                grades.forEach(grade => {
+                    const count = gradeData[grade] || 0;
+                    const heightPercent = (count / maxCount) * 100;
+                    const isPass = !['C-', 'D+', 'D', 'F'].includes(grade);
+                    const barColor = isPass ? 'bg-blue-500' : 'bg-red-500';
+
+                    chartHTML += `
+                        <div class="flex flex-col items-center flex-1">
+                            <span class="text-sm font-bold">${count}</span>
+                            <div class="w-full h-full flex items-end">
+                                <div class="${barColor} w-full rounded-t" style="height: ${heightPercent}%" title="${grade}: ${count} pelajar"></div>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 mt-1">${grade}</span>
+                        </div>
+                    `;
+                });
+                
+                chartHTML += '</div>';
+                chartContainer.innerHTML = chartHTML;
             }
 
 
@@ -1404,15 +1463,26 @@
             });
 
             function updatePrintableArea() {
-                if (!pbUpsReportDisplay.classList.contains('hidden')) { 
-                    pbUpsReportDisplay.classList.add('printable-area'); 
-                    topikalReportDisplay.classList.remove('printable-area'); 
-                } 
-                else { 
-                    topikalReportDisplay.classList.add('printable-area'); 
-                    pbUpsReportDisplay.classList.remove('printable-area'); 
+                // Sembunyikan elemen print container
+                printContainer.innerHTML = '';
+                
+                // Tambah/buang kelas 'printable-area' pada kandungan aktif
+                if (!reportContentArea.classList.contains('hidden')) {
+                    if (!pbUpsReportDisplay.classList.contains('hidden')) { 
+                        pbUpsReportDisplay.classList.add('printable-area'); 
+                        topikalReportDisplay.classList.remove('printable-area'); 
+                    } 
+                    else { 
+                        topikalReportDisplay.classList.add('printable-area'); 
+                        pbUpsReportDisplay.classList.remove('printable-area'); 
+                    }
+                } else {
+                    // Tiada apa untuk dicetak jika bukan di tab laporan
+                    pbUpsReportDisplay.classList.remove('printable-area');
+                    topikalReportDisplay.classList.remove('printable-area');
                 }
             }
+
 
             startApp();
 
