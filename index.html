@@ -54,11 +54,12 @@
                 padding: 1rem;
             }
             #print-container table {
-                font-size: 10px;
+                font-size: 9px; /* Saiz fon dikecilkan lagi untuk memuatkan lajur tambahan */
                 width: 100%;
             }
              #print-container th, #print-container td {
                 padding: 4px;
+                white-space: nowrap; /* Elak teks terpotong */
             }
         }
         
@@ -164,6 +165,10 @@
                         <button id="tab-report" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center">
                            <i data-lucide="clipboard-list" class="mr-2 h-5 w-5"></i> Laporan Kelas
                         </button>
+                        <!-- Tab Analisis Kelas (Baru) -->
+                        <button id="tab-class-analysis" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center">
+                           <i data-lucide="pie-chart" class="mr-2 h-5 w-5"></i> Analisis Kelas
+                        </button>
                         <!-- Tab Khas untuk Ketua Unit & Admin -->
                         <button id="tab-analysis" class="hidden whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center">
                            <i data-lucide="bar-chart-2" class="mr-2 h-5 w-5"></i> Analisis Unit
@@ -245,7 +250,31 @@
                     </div>
                 </div>
                 
-                <!-- Tab 4: Analisis Unit (KU & Admin) -->
+                <!-- Tab 4: Analisis Kelas (Baru) -->
+                <div id="class-analysis-content" class="mt-6 hidden">
+                    <h3 class="text-lg font-semibold text-slate-800">Analisis Kelas: <span id="class-analysis-title" class="text-blue-600"></span></h3>
+                    
+                    <div class="mt-6">
+                        <h4 class="text-md font-semibold text-slate-700">Analisis Mengikut Ujian Topikal (UT)</h4>
+                        <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan prestasi kelas anda bagi setiap Ujian Topikal.</p>
+                        <div class="overflow-x-auto mt-4">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead id="class-ut-analysis-head" class="bg-slate-50"></thead>
+                                <tbody id="class-ut-analysis-body" class="bg-white divide-y divide-slate-200"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-12">
+                        <h4 class="text-md font-semibold text-slate-700">Taburan Gred ETR Kelas</h4>
+                        <p class="text-sm text-slate-500 mt-1">Carta ini menunjukkan taburan gred ETR keseluruhan untuk kelas ini.</p>
+                        <div id="grade-distribution-chart-class" class="mt-4 bg-white p-6 rounded-lg shadow">
+                            <!-- Carta Bar Menegak akan dijana oleh JS di sini -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: Analisis Unit (KU & Admin) -->
                 <div id="analysis-content" class="mt-6 hidden">
                     <h3 class="text-lg font-semibold text-slate-800">Analisis Prestasi Keseluruhan (Purata Program)</h3>
                     <p class="text-sm text-slate-500 mt-1">Carta ini menunjukkan purata pencapaian ETR dan PNGK bagi setiap program.</p>
@@ -272,7 +301,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 5: Urus Data (Admin) -->
+                <!-- Tab 6: Urus Data (Admin) -->
                 <div id="admin-content" class="mt-6 hidden">
                     <h3 class="text-lg font-semibold text-slate-800">Mod Pentadbir: Urus Data Markah</h3>
                     <p class="text-sm text-slate-500 mt-1">Anda boleh memilih mana-mana kelas dan program untuk melihat atau mengemas kini data markah.</p>
@@ -380,17 +409,22 @@
             const tabEntry = document.getElementById('tab-entry');
             const tabReport = document.getElementById('tab-report');
             const tabAnalysis = document.getElementById('tab-analysis');
+            const tabClassAnalysis = document.getElementById('tab-class-analysis');
             const tabAdmin = document.getElementById('tab-admin');
             
             const dashboardContent = document.getElementById('dashboard-content');
             const entryContent = document.getElementById('entry-content');
             const reportContentArea = document.getElementById('report-content-area');
+            const classAnalysisContent = document.getElementById('class-analysis-content');
             const analysisContent = document.getElementById('analysis-content');
             const adminContent = document.getElementById('admin-content');
 
             const dashboardTableHead = document.getElementById('dashboard-table-head');
             const dashboardTableBody = document.getElementById('dashboard-table-body');
             const analysisChartsContainer = document.getElementById('analysis-charts-container');
+            const classAnalysisTitle = document.getElementById('class-analysis-title');
+            const classUtAnalysisHead = document.getElementById('class-ut-analysis-head');
+            const classUtAnalysisBody = document.getElementById('class-ut-analysis-body');
             
             const reportClassNameEl = document.getElementById('report-class-name');
             const assessmentSelectEl = document.getElementById('assessment-select');
@@ -563,7 +597,12 @@
                 if(!reportContentArea.classList.contains('hidden')) {
                     renderAllClassReports();
                 }
-                renderAnalysisTable();
+                if(!analysisContent.classList.contains('hidden')) {
+                    renderAnalysisTable();
+                }
+                if(!classAnalysisContent.classList.contains('hidden')) {
+                    renderClassAnalysis();
+                }
 
                 // 2. Dengar perubahan data
                 channel = supabaseClient.channel(`scores_channel`)
@@ -581,9 +620,14 @@
                                 // Muat semula semua paparan
                                 renderDashboard();
                                 renderMarkEntryTable();
-                                renderAnalysisTable();
                                 if(!reportContentArea.classList.contains('hidden')) {
                                     renderAllClassReports();
+                                }
+                                if(!analysisContent.classList.contains('hidden')) {
+                                    renderAnalysisTable();
+                                }
+                                if(!classAnalysisContent.classList.contains('hidden')) {
+                                    renderClassAnalysis();
                                 }
                             }
                         }
@@ -881,7 +925,10 @@
                 pbUpsReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${pbUpsHeader}${pbUpsBody}</table></div>`;
                 
                 let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
-                structure.topikal.forEach(a => topikalHeader += `<th class="px-2 py-2">${a.name}</th>`);
+                structure.topikal.forEach(a => {
+                    topikalHeader += `<th class="px-2 py-2">${a.name} (Markah/%)</th>`;
+                    topikalHeader += `<th class="px-2 py-2">${a.name} (Gred)</th>`;
+                });
                 topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR (/100)</th><th class="px-2 py-2 font-bold text-red-600">Gred ETR</th><th class="px-2 py-2 font-bold text-red-600">Status</th></tr></thead>`;
                 let topikalBody = '<tbody>';
                 let totalGradePoints = 0;
@@ -890,7 +937,22 @@
                     const calculated = calculateScores(state.currentClass, student.NoMatrik, program);
                     totalGradePoints += calculated.gradePoint;
                     topikalBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
-                    structure.topikal.forEach(a => topikalBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
+                    
+                    structure.topikal.forEach(a => {
+                        const score = studentScores[a.name];
+                        const scoreDisplay = (score === null || score === undefined) ? '' : score;
+                        let percentage = 0;
+                        let percentageDisplay = '';
+                        let gradeDisplay = '';
+                        if (score !== null && score !== undefined && score !== '') {
+                            percentage = (parseFloat(score) / a.fullMarks) * 100;
+                            percentageDisplay = `(${(percentage).toFixed(1)}%)`;
+                            gradeDisplay = getGradeInfo(percentage).grade;
+                        }
+                        topikalBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${percentageDisplay}</span></td>`;
+                        topikalBody += `<td class="px-2 py-2 font-medium">${gradeDisplay}</td>`;
+                    });
+
                     topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${calculated.ut.toFixed(2)}</td>`;
                     topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${calculated.totalEtr.toFixed(2)}</td>`;
                     topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${calculated.grade}</td>`;
@@ -1249,8 +1311,8 @@
 
             // Pengurusan Tab Utama
             function switchTab(activeTab) {
-                const tabs = { dashboard: tabDashboard, entry: tabEntry, report: tabReport, analysis: tabAnalysis, admin: tabAdmin };
-                const contents = { dashboard: dashboardContent, entry: entryContent, report: reportContentArea, analysis: analysisContent, admin: adminContent };
+                const tabs = { dashboard: tabDashboard, entry: tabEntry, report: tabReport, analysis: tabAnalysis, admin: tabAdmin, class_analysis: tabClassAnalysis };
+                const contents = { dashboard: dashboardContent, entry: entryContent, report: reportContentArea, analysis: analysisContent, admin: adminContent, class_analysis: classAnalysisContent };
 
                 for (const key in tabs) {
                     if (key === activeTab) {
@@ -1288,6 +1350,15 @@
                 switchTab('report');
                 renderAllClassReports();
                 updatePrintableArea();
+            });
+
+            tabClassAnalysis.addEventListener('click', () => {
+                if (!state.currentClass) {
+                    alert("Sila pilih kelas dari dashboard dahulu.");
+                    return;
+                }
+                switchTab('class_analysis');
+                renderClassAnalysis();
             });
             
             tabAnalysis.addEventListener('click', () => {
@@ -1419,6 +1490,77 @@
                 localStorage.setItem('viewMode_v13', state.viewMode);
                 renderDashboard();
             });
+            
+            // Fungsi baru untuk Analisis Kelas
+            function renderClassAnalysis() {
+                if (!state.currentClass || !state.classes[state.currentClass]) {
+                    classAnalysisContent.innerHTML = '<p class="text-slate-500">Sila pilih kelas dari dashboard dahulu.</p>';
+                    return;
+                }
+                
+                classAnalysisTitle.textContent = state.currentClass;
+                
+                const currentClassData = state.classes[state.currentClass];
+                const students = currentClassData.students;
+                const program = currentClassData.program;
+                const structure = assessmentStructures[program];
+                const classScores = state.scores[state.currentClass] || {};
+
+                // 1. Analisis Ujian Topikal (Jadual)
+                let utHead = `<tr>
+                    <th class="px-2 py-2 text-left text-xs font-medium text-slate-500 uppercase">Ujian Topikal</th>
+                    <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">Min Markah (%)</th>
+                    <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">% Lulus (Gred C ke atas)</th>
+                    <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">% Gred A</th>
+                </tr>`;
+                classUtAnalysisHead.innerHTML = utHead;
+
+                let utBody = '';
+                structure.topikal.forEach(ass => {
+                    let totalPercentage = 0;
+                    let passCount = 0;
+                    let aCount = 0;
+                    let studentWithMarkCount = 0;
+                    
+                    students.forEach(student => {
+                        const studentScores = classScores[student.NoMatrik] || {};
+                        const score = parseFloat(studentScores[ass.name]);
+                        
+                        if (!isNaN(score)) {
+                            studentWithMarkCount++;
+                            const percentage = (score / ass.fullMarks) * 100;
+                            totalPercentage += percentage;
+                            const gradeInfo = getGradeInfo(percentage);
+                            if (gradeInfo.status === 'LULUS') passCount++;
+                            if (gradeInfo.grade === 'A') aCount++;
+                        }
+                    });
+                    
+                    const count = studentWithMarkCount || 1;
+                    const mean = (totalPercentage / count).toFixed(2);
+                    const passPercent = ((passCount / count) * 100).toFixed(1);
+                    const aPercent = ((aCount / count) * 100).toFixed(1);
+
+                    utBody += `<tr class="bg-white border-b">
+                        <td class="px-2 py-2 text-left font-medium text-slate-900">${ass.name} - ${ass.fullName}</td>
+                        <td class="px-2 py-2 text-center text-slate-700">${mean}%</td>
+                        <td class="px-2 py-2 text-center text-slate-700">${passPercent}%</td>
+                        <td class="px-2 py-2 text-center text-slate-700">${aPercent}%</td>
+                    </tr>`;
+                });
+                classUtAnalysisBody.innerHTML = utBody;
+                
+                // 2. Taburan Gred ETR Kelas
+                let classGradeDistribution = { 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'F': 0 };
+                students.forEach(student => {
+                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program);
+                    if (classGradeDistribution.hasOwnProperty(calculated.grade)) {
+                        classGradeDistribution[calculated.grade]++;
+                    }
+                });
+                renderGradeDistributionChart('grade-distribution-chart-class', classGradeDistribution);
+            }
+
 
             async function startApp() {
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
