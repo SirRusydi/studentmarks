@@ -39,6 +39,17 @@
         #dashboard-table-body td:hover {
             background-color: #f0f9ff; /* sky-50 */
         }
+        
+        /* Gaya untuk tab yang dilumpuhkan */
+        button[disabled] {
+            color: #9ca3af; /* text-gray-400 */
+            border-color: transparent;
+            cursor: not-allowed;
+        }
+        button[disabled]:hover {
+            color: #9ca3af;
+            border-color: transparent;
+        }
 
         /* Gaya untuk cetakan laporan */
         @media print {
@@ -126,11 +137,11 @@
                     </div>
                      <div>
                         <p class="text-sm font-medium text-slate-700">Program</p>
-                        <p id="program-display" class="mt-1 text-lg font-semibold text-slate-800 h-10 flex items-center">-</B></p>
+                        <p id="program-display" class="mt-1 text-lg font-semibold text-slate-800 h-10 flex items-center">-</p>
                     </div>
                      <div>
                         <p class="text-sm font-medium text-slate-700">Peranan</p>
-                        <p id="role-display" class="mt-1 text-lg font-semibold text-slate-800 h-10 flex items-center">-</B></p>
+                        <p id="role-display" class="mt-1 text-lg font-semibold text-slate-800 h-10 flex items-center">-</p>
                     </div>
                      <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 flex items-center">
                         <i data-lucide="log-out" class="mr-2 h-5 w-5"></i>
@@ -138,7 +149,18 @@
                     </button>
                 </div>
                  
-                <div class="grid md:grid-cols-2 gap-4 items-end">
+                <div class="grid md:grid-cols-4 gap-4 items-end">
+                    <div>
+                         <label for="year-select" class="block text-sm font-medium text-slate-700">Tahun Sesi (Paparan)</label>
+                         <select id="year-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
+                    </div>
+                    <div>
+                         <label for="semester-select" class="block text-sm font-medium text-slate-700">Semester (Paparan)</label>
+                         <select id="semester-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                         </select>
+                    </div>
                     <div>
                          <label class="block text-sm font-medium text-slate-700">Kelas Aktif</label>
                          <p id="active-class-display" class="mt-1 text-lg font-semibold text-blue-600 h-10 flex items-center">-- Sila pilih dari dashboard --</p>
@@ -183,7 +205,7 @@
                 <!-- Tab 1: Dashboard Pengisian Markah -->
                 <div id="dashboard-content" class="mt-6">
                     <h3 class="text-lg font-semibold text-slate-800">Status Pengisian Markah</h3>
-                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan status pengisian markah untuk semua kelas anda. Klik pada sel (✅ Selesai/❌Belum Selesai) untuk terus mengisi markah.</p>
+                    <p class="text-sm text-slate-500 mt-1">Jadual ini menunjukkan status pengisian markah untuk semua kelas anda. Klik pada sel (✅/❌) untuk terus mengisi markah.</p>
                     <div class="overflow-x-auto mt-4">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead id="dashboard-table-head" class="bg-slate-50">
@@ -198,8 +220,11 @@
 
                 <!-- Tab 2: Kemasukan Markah -->
                 <div id="entry-content" class="mt-6 hidden">
+                    <div id="entry-disabled-warning" class="hidden p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+                        <span class="font-medium">Mod Paparan Sahaja!</span> Anda sedang melihat data semester lepas. Fungsi kemasukan markah dilumpuhkan. Sila pilih Tahun Sesi dan Semester semasa untuk mengisi markah.
+                    </div>
                     <div class="max-w-md">
-                        <label for="assessment-select" class="block text-sm font-medium text-slate-700"> Sila Pilih Penilaian untuk Diisi</label>
+                        <label for="assessment-select" class="block text-sm font-medium text-slate-700">2. Pilih Penilaian untuk Diisi</label>
                         <select id="assessment-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
                     </div>
                     <div id="mark-entry-area" class="mt-6 hidden">
@@ -268,7 +293,7 @@
                     <div class="mt-12">
                         <h4 class="text-md font-semibold text-slate-700">Taburan Gred ETR Kelas</h4>
                         <p class="text-sm text-slate-500 mt-1">Carta ini menunjukkan taburan gred ETR keseluruhan untuk kelas ini.</p>
-                        <div id="grade-distribution-chart-class" class="mt-4 bg-white p-6 rounded-lg shadow">
+                        <div id="grade-distribution-chart-class" class="mt-4 bg-white p-6 rounded-lg shadow h-80">
                             <!-- Carta Bar Menegak akan dijana oleh JS di sini -->
                         </div>
                     </div>
@@ -289,13 +314,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                             <!-- Carta 1: SES -->
                             <div class="bg-white p-6 rounded-lg shadow">
-                                <h4 class="text-lg font-semibold text-slate-700">Sistem Empat Semester (SES)</h4>
-                                <div id="grade-distribution-chart-ses" class="mt-4"></div>
+                                <h4 class="text-lg font-semibold text-slate-700">Program Empat Semester (SES)</h4>
+                                <div id="grade-distribution-chart-ses" class="mt-4 h-72"></div>
                             </div>
                             <!-- Carta 2: SDS -->
                             <div class="bg-white p-6 rounded-lg shadow">
-                                <h4 class="text-lg font-semibold text-slate-700">Sistem Dua Semester (SDS)</h4>
-                                <div id="grade-distribution-chart-sds" class="mt-4"></div>
+                                <h4 class="text-lg font-semibold text-slate-700">Program Dua Semester (SDS)</h4>
+                                <div id="grade-distribution-chart-sds" class="mt-4 h-72"></div>
                             </div>
                         </div>
                     </div>
@@ -303,6 +328,9 @@
 
                 <!-- Tab 6: Urus Data (Admin) -->
                 <div id="admin-content" class="mt-6 hidden">
+                     <div id="admin-disabled-warning" class="hidden p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+                        <span class="font-medium">Mod Paparan Sahaja!</span> Anda sedang melihat data semester lepas. Fungsi Admin dilumpuhkan. Sila pilih Tahun Sesi dan Semester semasa untuk mengurus data.
+                    </div>
                     <h3 class="text-lg font-semibold text-slate-800">Mod Pentadbir: Urus Data Markah</h3>
                     <p class="text-sm text-slate-500 mt-1">Anda boleh memilih mana-mana kelas dan program untuk melihat atau mengemas kini data markah.</p>
                     
@@ -361,6 +389,10 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndoZ2tjdXVkbnZ1dWhjbGRxeWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxOTMzMDEsImV4cCI6MjA3NTc2OTMwMX0.UxQZAph8XZuqX2QKflKCseTTYR2kmO0uHZvvFou5hG4'; // MASUKKAN KUNCI 'anon' 'public' SUPABASE ANDA
             const SPREADSHEET_ID = '1lKpYPqQyv1J9Lnt1kgTrnaWy3G1JsSqJpMsOgyds2qo'; // MASUKKAN ID GOOGLE SHEET ANDA
             const API_KEY = 'AIzaSyASE0C8W5yhfcU8jsK8ziijEJKr4RCFrbA'; // MASUKKAN KUNCI API GOOGLE ANDA
+            
+            // ** TETAPKAN TAHUN DAN SEMESTER SEMASA DI SINI **
+            const CURRENT_ACADEMIC_YEAR = "2025/2026"; // DIKEMAS KINI
+            const CURRENT_SEMESTER = "1"; // Guna "1" atau "2"
             // =================================================================
 
             const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -368,20 +400,34 @@
             lucide.createIcons();
 
             // Struktur Pemarkahan untuk kedua-dua program
-            const assessmentStructures = {
-                SES: {
-                    topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 30 }, ],
-                    pb: [ { name: 'Tugasan', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
-                    ups: [ { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 }, { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 14 }, ]
+            const allAssessmentStructures = {
+                "SES": {
+                    "1": { // SES Sem 1
+                        topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 30 }, ],
+                        pb: [ { name: 'Tugasan', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
+                        ups: [ { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 }, { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 14 }, ]
+                    },
+                    "2": { // SES Sem 2 (Contoh: Bilangan UT berbeza)
+                        topikal: [ { name: 'UT7', fullName: 'Ujian Topikal 7', fullMarks: 20 }, { name: 'UT8', fullName: 'Ujian Topikal 8', fullMarks: 20 }, { name: 'UT9', fullName: 'Ujian Topikal 9', fullMarks: 20 }, { name: 'UT10', fullName: 'Ujian Topikal 10', fullMarks: 20 } ],
+                        pb: [ { name: 'Tugasan 2', fullName: 'Tugasan Individu 2', fullMarks: 30, weightage: 15 }, { name: 'Amali 2', fullName: 'Laporan Amali 2', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif 2', fullName: 'Kemahiran Manipulatif 2', fullMarks: 20, weightage: 10 } ],
+                        ups: [ { name: 'UPS4', fullName: 'UPS 4', fullMarks: 40 }, { name: 'UPS5', fullName: 'UPS 5', fullMarks: 40 } ]
+                    }
                 },
-                SDS: { // Anda boleh ubah suai struktur SDS ini jika ia berbeza
-                    topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 30 }, ],
-                    pb: [ { name: 'Tugasan', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
-                    ups: [ { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 }, { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 14 }, ]
+                "SDS": {
+                    "1": { // SDS Sem 1
+                        topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 30 }, ],
+                        pb: [ { name: 'Tugasan', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
+                        ups: [ { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 }, { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 14 }, ]
+                    },
+                    "2": { // SDS Sem 2
+                        topikal: [ { name: 'UT7', fullName: 'Ujian Topikal 7', fullMarks: 20 }, { name: 'UT8', fullName: 'Ujian Topikal 8', fullMarks: 20 } ],
+                        pb: [ { name: 'Tugasan 2', fullName: 'Tugasan Individu 2', fullMarks: 30, weightage: 15 }, { name: 'Amali 2', fullName: 'Laporan Amali 2', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif 2', fullName: 'Kemahiran Manipulatif 2', fullMarks: 20, weightage: 10 } ],
+                        ups: [ { name: 'UPS4', fullName: 'UPS 4', fullMarks: 40 } ]
+                    }
                 }
             };
             
-            let currentAssessmentStructure = assessmentStructures.SES; // Lalai
+            let currentAssessmentStructure = allAssessmentStructures.SES['1']; // Lalai
             let allAssessments = [];
             
             const totalWeightageUPS = 20;
@@ -403,6 +449,8 @@
             const roleDisplayEl = document.getElementById('role-display');
             const viewModeWrapper = document.getElementById('view-mode-wrapper');
             const viewModeSelectEl = document.getElementById('view-mode-select');
+            const yearSelectEl = document.getElementById('year-select');
+            const semesterSelectEl = document.getElementById('semester-select');
             const mainContentEl = document.getElementById('main-content');
             
             const tabDashboard = document.getElementById('tab-dashboard');
@@ -429,6 +477,7 @@
             const reportClassNameEl = document.getElementById('report-class-name');
             const assessmentSelectEl = document.getElementById('assessment-select');
             const markEntryArea = document.getElementById('mark-entry-area');
+            const entryDisabledWarning = document.getElementById('entry-disabled-warning');
             const currentAssessmentDisplay = document.getElementById('current-assessment-display');
             const markEntryHead = document.getElementById('mark-entry-head');
             const markEntryBody = document.getElementById('mark-entry-body');
@@ -442,6 +491,7 @@
             const printContainer = document.getElementById('print-container');
 
             // DOM Admin
+            const adminDisabledWarning = document.getElementById('admin-disabled-warning');
             const adminProgramSelect = document.getElementById('admin-program-select');
             const adminClassSelect = document.getElementById('admin-class-select');
             const adminMarkEntry = document.getElementById('admin-mark-entry');
@@ -463,7 +513,9 @@
                 scores: {}, // { "K1T1": { "MS123": { ... } }, "K2T2": { ... } }
                 currentClass: null,
                 currentProgram: null,
-                currentAcademicYear: "2025/2026", // Tahun akademik semasa
+                viewableYear: CURRENT_ACADEMIC_YEAR,
+                viewableSemester: CURRENT_SEMESTER,
+                isEditMode: true, // Adakah kita melihat semester semasa?
                 viewMode: null // 'pensyarah', 'ketua_unit', 'admin'
             };
             let saveStatusTimeout;
@@ -514,7 +566,8 @@
                     .select('class_name')
                     .eq('class_name', classToSave)
                     .eq('program', programToSave)
-                    .eq('academic_year', state.currentAcademicYear)
+                    .eq('academic_year', CURRENT_ACADEMIC_YEAR)
+                    .eq('semester', CURRENT_SEMESTER)
                     .single();
 
                 if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = tiada baris ditemui, itu OK.
@@ -530,7 +583,8 @@
                         .update({ scores_data: scoresToSave })
                         .eq('class_name', classToSave)
                         .eq('program', programToSave)
-                        .eq('academic_year', state.currentAcademicYear);
+                        .eq('academic_year', CURRENT_ACADEMIC_YEAR)
+                        .eq('semester', CURRENT_SEMESTER);
                     
                     if (updateError) {
                         console.error('Error updating scores:', updateError);
@@ -545,7 +599,8 @@
                         .insert({ 
                             class_name: classToSave, 
                             program: programToSave,
-                            academic_year: state.currentAcademicYear,
+                            academic_year: CURRENT_ACADEMIC_YEAR,
+                            semester: CURRENT_SEMESTER,
                             scores_data: scoresToSave 
                         });
 
@@ -569,7 +624,8 @@
                 let query = supabaseClient
                     .from('scores')
                     .select('class_name, program, scores_data')
-                    .eq('academic_year', state.currentAcademicYear);
+                    .eq('academic_year', state.viewableYear)
+                    .eq('semester', state.viewableSemester);
                 
                 // Paparan Ketua Unit/Admin memuatkan semua
                 // Paparan Pensyarah hanya memuatkan kelas & program mereka
@@ -588,7 +644,7 @@
                     data.forEach(row => {
                         state.scores[row.class_name] = row.scores_data || {};
                     });
-                    console.log("Markah untuk semua kelas telah dimuat turun.");
+                    console.log(`Markah untuk ${state.viewableYear} Sem ${state.viewableSemester} telah dimuat turun.`);
                 }
 
                 // Muat semula semua paparan
@@ -610,7 +666,7 @@
                         event: '*',
                         schema: 'public',
                         table: 'scores',
-                        filter: `academic_year=eq.${state.currentAcademicYear}`
+                        filter: `academic_year=eq.${state.viewableYear}&semester=eq.${state.viewableSemester}`
                     }, payload => {
                         console.log('Perubahan diterima dari Supabase!', payload);
                         if (payload.new) {
@@ -620,14 +676,12 @@
                                 // Muat semula semua paparan
                                 renderDashboard();
                                 renderMarkEntryTable();
-                                if(!reportContentArea.classList.contains('hidden')) {
-                                    renderAllClassReports();
-                                }
-                                if(!analysisContent.classList.contains('hidden')) {
-                                    renderAnalysisTable();
-                                }
+                                renderAnalysisTable();
                                 if(!classAnalysisContent.classList.contains('hidden')) {
                                     renderClassAnalysis();
+                                }
+                                if(!reportContentArea.classList.contains('hidden')) {
+                                    renderAllClassReports();
                                 }
                             }
                         }
@@ -692,37 +746,16 @@
                 state.allLecturers = allLecturers;
                 state.allStudents = allStudents;
                 
-                // 3. Tapis data berdasarkan peranan
-                
-                const currentYear = state.currentAcademicYear;
-                let lecturerRows = [];
-                let allLecturerRowsForYear = state.allLecturers.filter(L => L.TahunAkademik === currentYear);
+                // 3. Tapis data
                 
                 // Dapatkan senarai kelas pensyarah ini (walaupun dia admin/ku)
                 const userClasses = [...new Set(allLecturers
-                    .filter(L => L.Email === user.email && L.TahunAkademik === currentYear)
+                    .filter(L => L.Email === user.email)
                     .map(row => row.KelasDiajar.trim())
                 )];
 
                 // Tentukan program pensyarah (program pertama yang ditemui untuk e-mel mereka)
-                const userProgram = allLecturers.find(l => l.Email === user.email && l.TahunAkademik === currentYear)?.Program || 'Semua';
-                
-                if (state.user.role === 'pensyarah') {
-                    lecturerRows = allLecturerRowsForYear.filter(L => L.Email === user.email);
-                    if (lecturerRows.length === 0) {
-                         connectionStatusEl.textContent = 'Status: Ralat! E-mel anda tidak ditemui dalam SenaraiPensyarah untuk tahun ini.';
-                         connectionStatusEl.className = 'text-sm mt-2 text-red-600';
-                         await supabaseClient.auth.signOut();
-                         return;
-                    }
-                    state.currentProgram = lecturerRows[0].Program;
-                } else {
-                    // Admin & Ketua Unit melihat semua
-                    lecturerRows = allLecturerRowsForYear;
-                    state.currentProgram = 'Semua'; // Tetapan khas untuk paparan
-                }
-                
-                state.visibleLecturerClasses = [...new Set(lecturerRows.map(row => row.KelasDiajar.trim()))];
+                const userProgram = allLecturers.find(l => l.Email === user.email)?.Program || 'Semua';
                 
                 state.lecturerDetails = {
                     NamaPensyarah: state.user.full_name,
@@ -730,17 +763,16 @@
                     KelasDiajar: userClasses, // Hanya kelas PENSYARAH itu sendiri
                     Program: userProgram 
                 };
-                
-                state.classes = {};
-                const studentsForYear = state.allStudents.filter(s => s.TahunAkademik === currentYear);
-                
-                state.visibleLecturerClasses.forEach(className => {
-                    let programForClass = state.allLecturers.find(l => l.KelasDiajar === className && l.TahunAkademik === currentYear)?.Program;
 
-                    const studentsInClass = studentsForYear.filter(s => s.Kelas === className && s.Program === programForClass);
-                    state.classes[className] = { students: studentsInClass, program: programForClass };
+                // Isi dropdown tahun
+                const allYears = [...new Set(state.allLecturers.map(l => l.TahunAkademik))].sort().reverse();
+                yearSelectEl.innerHTML = '';
+                allYears.forEach(year => {
+                    yearSelectEl.add(new Option(year, year));
                 });
-
+                yearSelectEl.value = CURRENT_ACADEMIC_YEAR;
+                semesterSelectEl.value = CURRENT_SEMESTER;
+                
                 connectionStatusEl.textContent = 'Status: Data berjaya dimuat turun!';
                 connectionStatusEl.className = 'text-sm mt-2 text-green-600';
                 
@@ -763,18 +795,15 @@
                     renderAdminTab();
                 }
 
+                // Pulihkan kelas terakhir yang dipilih
                 const lastClass = localStorage.getItem('currentClass_supabase_v1');
                 if(lastClass && state.visibleLecturerClasses.includes(lastClass)) {
                     state.currentClass = lastClass;
+                } else {
+                    state.currentClass = null; // Reset jika kelas terakhir tidak valid
                 }
                 
-                await loadAndListenToScores(); // Muat turun semua markah
-                updateActiveClassDisplay(); // Kemaskini UI berdasarkan kelas yang dipilih
-                renderDashboard(); // Papar dashboard
-                renderAssessmentSelector(); // Sediakan dropdown
-                
-                mainContentEl.classList.remove('hidden'); // Tunjukkan bahagian utama
-                switchTab('dashboard'); // Tetapkan dashboard sebagai tab lalai
+                await filterDataAndView(); // Panggil fungsi utama untuk tapis dan muat turun data
             }
             
             function renderViewModeSelector() {
@@ -803,6 +832,10 @@
                 }
             }
 
+            function getAssessmentStructure(program, semester) {
+                return allAssessmentStructures[program]?.[semester] || allAssessmentStructures.SES['1'];
+            }
+            
             function renderAssessmentSelector() {
                 let programForStructure = state.lecturerDetails.Program; // Program asal pensyarah
                 if (state.currentClass) {
@@ -811,7 +844,7 @@
                     programForStructure = 'SES'; // Guna SES sebagai lalai jika tiada kelas aktif
                 }
 
-                currentAssessmentStructure = assessmentStructures[programForStructure] || assessmentStructures.SES;
+                currentAssessmentStructure = getAssessmentStructure(programForStructure, state.viewableSemester);
                 allAssessments = [ ...currentAssessmentStructure.topikal, ...currentAssessmentStructure.pb, ...currentAssessmentStructure.ups ];
                 
                 assessmentSelectEl.innerHTML = '<option value="">-- Pilih Penilaian --</option>';
@@ -847,10 +880,13 @@
                     const studentScores = classScores[student.NoMatrik] || {};
                     const score = studentScores[assessment.name] === null || studentScores[assessment.name] === undefined ? '' : studentScores[assessment.name];
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${index + 1}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${student.NamaPelajar}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${student.NoMatrik}</td><td class="px-6 py-4"><input type="number" class="score-input w-24 rounded-md border-slate-300" data-student-matric="${student.NoMatrik}" value="${score}"></td>`;
+                    row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${index + 1}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${student.NamaPelajar}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${student.NoMatrik}</td><td class="px-6 py-4"><input type="number" class="score-input w-24 rounded-md border-slate-300" data-student-matric="${student.NoMatrik}" value="${score}" ${!state.isEditMode ? 'disabled' : ''}></td>`;
                     markEntryBody.appendChild(row);
                 });
                 markEntryArea.classList.remove('hidden');
+                
+                // Lumpuhkan butang simpan jika bukan mod edit
+                saveMarksBtn.disabled = !state.isEditMode;
             }
             
             // Fungsi baru untuk Gred
@@ -868,10 +904,10 @@
                 return { grade: 'F', point: 0.00, status: 'GAGAL' };
             }
 
-            function calculateScores(className, studentMatric, program) {
+            function calculateScores(className, studentMatric, program, semester) {
                 const classScores = state.scores[className] || {};
                 const studentScores = classScores[studentMatric] || {};
-                const structure = assessmentStructures[program] || assessmentStructures.SES; // Guna struktur yg betul
+                const structure = getAssessmentStructure(program, semester); 
                 
                 const results = { pb: 0, ups: 0, ut: 0, totalEtr: 0, grade: 'N/A', gradePoint: 0, status: 'N/A' };
                 structure.pb.forEach(ass => { const score = parseFloat(studentScores[ass.name] || 0); if (!isNaN(score)) results.pb += (score / ass.fullMarks) * ass.weightage; });
@@ -905,17 +941,18 @@
                 const currentClassData = state.classes[state.currentClass];
                 const students = currentClassData.students;
                 const program = currentClassData.program;
-                const structure = assessmentStructures[program];
+                const semester = state.viewableSemester;
+                const structure = getAssessmentStructure(program, semester);
                 const classScores = state.scores[state.currentClass] || {};
 
                 let pbUpsHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
                 structure.pb.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
                 structure.ups.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
-                pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">PB (40%)</th><th class="px-2 py-2 font-bold text-blue-600">UPS (20%)</th><th class="px-2 py-2 font-bold text-green-600">Jumlah (60%)</th></tr></thead>`;
+                pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">Jml PB</th><th class="px-2 py-2 font-bold text-blue-600">Jml UPS</th><th class="px-2 py-2 font-bold text-green-600">AKHIR</th></tr></thead>`;
                 let pbUpsBody = '<tbody>';
                 students.forEach((student, index) => {
                     const studentScores = classScores[student.NoMatrik] || {};
-                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program);
+                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester);
                     pbUpsBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
                     structure.pb.forEach(a => { const score = studentScores[a.name]; const scoreDisplay = (score === null || score === undefined) ? '' : score; const weightedScore = (score === null || score === undefined) ? '' : `(${(score / a.fullMarks * a.weightage).toFixed(2)}%)`; pbUpsBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${weightedScore}</span></td>`; });
                     structure.ups.forEach(a => pbUpsBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
@@ -926,15 +963,15 @@
                 
                 let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
                 structure.topikal.forEach(a => {
-                    topikalHeader += `<th class="px-2 py-2">${a.name} (Mrk/%)</th>`;
+                    topikalHeader += `<th class="px-2 py-2">${a.name} (Markah/%)</th>`;
                     topikalHeader += `<th class="px-2 py-2">${a.name} (Gred)</th>`;
                 });
-                topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR 100%</th><th class="px-2 py-2 font-bold text-red-600">Gred</th><th class="px-2 py-2 font-bold text-red-600">Stat</th></tr></thead>`;
+                topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR (/100)</th><th class="px-2 py-2 font-bold text-red-600">Gred ETR</th><th class="px-2 py-2 font-bold text-red-600">Status</th></tr></thead>`;
                 let topikalBody = '<tbody>';
                 let totalGradePoints = 0;
                 students.forEach((student, index) => {
                     const studentScores = classScores[student.NoMatrik] || {};
-                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program);
+                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester);
                     totalGradePoints += calculated.gradePoint;
                     topikalBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
                     
@@ -965,7 +1002,9 @@
             }
 
             function renderDashboard() {
-                const headerStructure = assessmentStructures.SES; // Guna SES sebagai rujukan header penuh
+                const program = (state.viewMode === 'pensyarah' && state.lecturerDetails.Program !== 'Semua') ? state.lecturerDetails.Program : 'SES'; // Guna SES sebagai rujukan header penuh
+                const semester = state.viewableSemester;
+                const headerStructure = getAssessmentStructure(program, semester);
                 const allHeaderAssessments = [ ...headerStructure.topikal, ...headerStructure.pb, ...headerStructure.ups ];
 
                 // Hasilkan Header
@@ -983,7 +1022,7 @@
                 // Tentukan kelas mana untuk dipaparkan berdasarkan viewMode
                 let classesToDisplay = [];
                 if (state.viewMode === 'pensyarah') {
-                    classesToDisplay = state.lecturerDetails.KelasDiajar;
+                    classesToDisplay = state.lecturerDetails.KelasDiajar.filter(className => state.classes[className]);
                 } else { // admin atau ketua_unit
                     classesToDisplay = Object.keys(state.classes);
                 }
@@ -1003,7 +1042,7 @@
                     
                     const students = classData.students || [];
                     const classScores = state.scores[className] || {};
-                    const structure = assessmentStructures[classData.program] || assessmentStructures.SES;
+                    const structure = getAssessmentStructure(classData.program, state.viewableSemester);
                     const classAssessments = [ ...structure.topikal, ...structure.pb, ...structure.ups ];
 
                     // Padankan dengan header penuh
@@ -1060,7 +1099,7 @@
                     const program = classData.program;
                     
                     students.forEach(student => {
-                        const calculated = calculateScores(className, student.NoMatrik, program);
+                        const calculated = calculateScores(className, student.NoMatrik, program, state.viewableSemester);
                         if (programAnalysis[program]) {
                             programAnalysis[program].totalPb += calculated.pb;
                             programAnalysis[program].totalUps += calculated.ups;
@@ -1082,7 +1121,8 @@
                 // Jana kad untuk setiap program
                 Object.keys(programAnalysis).forEach(programName => {
                     const data = programAnalysis[programName];
-                    const count = data.studentCount || 1; // Elak pembahagian dengan 0
+                    if (data.studentCount === 0) return; // Jangan papar kad jika tiada pelajar
+                    const count = data.studentCount;
                     
                     const avgPb = data.totalPb / count;
                     const avgUps = data.totalUps / count;
@@ -1126,7 +1166,7 @@
 
                                 <!-- Bar UPS -->
                                 <div>
-                                    <div class="flex justify-between text-sm font-medium text-slate-700">
+                                    <div class="flex justify_between text-sm font-medium text-slate-700">
                                         <span>Purata UPS (/20)</span>
                                         <span>${avgUps.toFixed(2)}%</span>
                                     </div>
@@ -1190,7 +1230,7 @@
             function renderAdminTab() {
                 // Isi dropdown program
                 adminProgramSelect.innerHTML = '<option value="">Pilih Program</option>';
-                Object.keys(assessmentStructures).forEach(programName => {
+                Object.keys(allAssessmentStructures).forEach(programName => {
                     adminProgramSelect.add(new Option(programName, programName));
                 });
                 
@@ -1200,7 +1240,7 @@
                     const selectedProgram = adminProgramSelect.value;
                     adminClassSelect.innerHTML = '<option value="">Pilih Kelas</option>';
                     const classesInProgram = [...new Set(state.allLecturers
-                        .filter(l => l.Program === selectedProgram)
+                        .filter(l => l.Program === selectedProgram && l.TahunAkademik === state.viewableYear && l.Semester === state.viewableSemester)
                         .map(l => l.KelasDiajar.trim())
                     )];
                     classesInProgram.sort().forEach(className => {
@@ -1211,7 +1251,7 @@
                 adminClassSelect.addEventListener('change', () => {
                     adminMarkEntry.classList.remove('hidden');
                     const program = adminProgramSelect.value;
-                    const structure = assessmentStructures[program];
+                    const structure = getAssessmentStructure(program, state.viewableSemester);
                     const allAdminAssessments = [...structure.topikal, ...structure.pb, ...structure.ups];
                     
                     adminAssessmentSelect.innerHTML = '<option value="">-- Pilih Penilaian --</option>';
@@ -1234,7 +1274,7 @@
                     return;
                 }
                 
-                const structure = assessmentStructures[program];
+                const structure = getAssessmentStructure(program, state.viewableSemester);
                 const allAdminAssessments = [...structure.topikal, ...structure.pb, ...structure.ups];
                 const assessment = allAdminAssessments.find(a => a.name === assessmentName);
 
@@ -1242,17 +1282,18 @@
                 adminMarkEntryHead.innerHTML = `<tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Bil.</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Pelajar</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">No. Matrik</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Markah (/ ${assessment.fullMarks})</th></tr>`;
                 adminMarkEntryBody.innerHTML = '';
                 
-                const students = state.allStudents.filter(s => s.Kelas === className && s.Program === program) || [];
+                const students = state.allStudents.filter(s => s.Kelas === className && s.Program === program && s.TahunAkademik === state.viewableYear && s.Semester === state.viewableSemester) || [];
                 const classScores = state.scores[className] || {};
                 
                 students.forEach((student, index) => {
                     const studentScores = classScores[student.NoMatrik] || {};
                     const score = studentScores[assessment.name] === null || studentScores[assessment.name] === undefined ? '' : studentScores[assessment.name];
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${index + 1}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${student.NamaPelajar}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${student.NoMatrik}</td><td class="px-6 py-4"><input type="number" class="score-input w-24 rounded-md border-slate-300" data-student-matric="${student.NoMatrik}" value="${score}"></td>`;
+                    row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${index + 1}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${student.NamaPelajar}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${student.NoMatrik}</td><td class="px-6 py-4"><input type="number" class="score-input w-24 rounded-md border-slate-300" data-student-matric="${student.NoMatrik}" value="${score}" ${!state.isEditMode ? 'disabled' : ''}></td>`;
                     adminMarkEntryBody.appendChild(row);
                 });
                 adminMarkEntryArea.classList.remove('hidden');
+                adminSaveMarksBtn.disabled = !state.isEditMode;
             }
             
             // Listener untuk admin mark entry
@@ -1271,165 +1312,224 @@
 
             // --- Event Listeners ---
             
-            assessmentSelectEl.addEventListener('change', renderMarkEntryTable);
+            function attachEventListeners() {
+                assessmentSelectEl.addEventListener('change', renderMarkEntryTable);
 
-            markEntryBody.addEventListener('change', (e) => {
-                if (e.target.classList.contains('score-input')) {
-                    const studentMatric = e.target.dataset.studentMatric;
-                    const assessmentName = assessmentSelectEl.value;
-                    const score = e.target.value;
-                    if (!state.scores[state.currentClass]) state.scores[state.currentClass] = {};
-                    if (!state.scores[state.currentClass][studentMatric]) state.scores[state.currentClass][studentMatric] = {};
-                    state.scores[state.currentClass][studentMatric][assessmentName] = score === '' ? null : parseFloat(score);
-                }
-            });
-            
-            markEntryBody.addEventListener('paste', (e) => {
-                if (!e.target.classList.contains('score-input')) return;
-                e.preventDefault();
-                const text = e.clipboardData.getData('text/plain');
-                const marks = text.split(/\r?\n/).filter(m => m.trim() !== '');
-                const allInputs = Array.from(markEntryBody.querySelectorAll('.score-input'));
-                let startIndex = allInputs.indexOf(e.target);
-                const assessmentName = assessmentSelectEl.value;
-                
-                if (!state.scores[state.currentClass]) state.scores[state.currentClass] = {};
-
-                marks.forEach((mark, i) => {
-                    let currentIndex = startIndex + i;
-                    if (currentIndex < allInputs.length) {
-                        const currentInput = allInputs[currentIndex];
-                        const studentMatric = currentInput.dataset.studentMatric;
-                        currentInput.value = mark.trim();
+                markEntryBody.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('score-input')) {
+                        const studentMatric = e.target.dataset.studentMatric;
+                        const assessmentName = assessmentSelectEl.value;
+                        const score = e.target.value;
+                        if (!state.scores[state.currentClass]) state.scores[state.currentClass] = {};
                         if (!state.scores[state.currentClass][studentMatric]) state.scores[state.currentClass][studentMatric] = {};
-                        state.scores[state.currentClass][studentMatric][assessmentName] = mark.trim() === '' ? null : parseFloat(mark.trim());
+                        state.scores[state.currentClass][studentMatric][assessmentName] = score === '' ? null : parseFloat(score);
                     }
                 });
-            });
+                
+                markEntryBody.addEventListener('paste', (e) => {
+                    if (!e.target.classList.contains('score-input')) return;
+                    e.preventDefault();
+                    const text = e.clipboardData.getData('text/plain');
+                    const marks = text.split(/\r?\n/).filter(m => m.trim() !== '');
+                    const allInputs = Array.from(markEntryBody.querySelectorAll('.score-input'));
+                    let startIndex = allInputs.indexOf(e.target);
+                    const assessmentName = assessmentSelectEl.value;
+                    
+                    if (!state.scores[state.currentClass]) state.scores[state.currentClass] = {};
 
-            saveMarksBtn.addEventListener('click', () => saveScoresToSupabase(false));
+                    marks.forEach((mark, i) => {
+                        let currentIndex = startIndex + i;
+                        if (currentIndex < allInputs.length) {
+                            const currentInput = allInputs[currentIndex];
+                            const studentMatric = currentInput.dataset.studentMatric;
+                            currentInput.value = mark.trim();
+                            if (!state.scores[state.currentClass][studentMatric]) state.scores[state.currentClass][studentMatric] = {};
+                            state.scores[state.currentClass][studentMatric][assessmentName] = mark.trim() === '' ? null : parseFloat(mark.trim());
+                        }
+                    });
+                });
+
+                saveMarksBtn.addEventListener('click', () => saveScoresToSupabase(false));
+
+                // Pengurusan Tab Utama
+                tabDashboard.addEventListener('click', () => {
+                    switchTab('dashboard');
+                    renderDashboard();
+                });
+
+                tabEntry.addEventListener('click', () => {
+                    if (tabEntry.disabled) return;
+                    if (!state.currentClass) {
+                        alert("Sila pilih kelas dari dashboard dahulu.");
+                        return;
+                    }
+                    switchTab('entry');
+                });
+
+                tabReport.addEventListener('click', () => {
+                    if (!state.currentClass) {
+                        alert("Sila pilih kelas dari dashboard dahulu.");
+                        return;
+                    }
+                    switchTab('report');
+                    renderAllClassReports();
+                    updatePrintableArea();
+                });
+
+                tabClassAnalysis.addEventListener('click', () => {
+                    if (!state.currentClass) {
+                        alert("Sila pilih kelas dari dashboard dahulu.");
+                        return;
+                    }
+                    switchTab('class_analysis');
+                    renderClassAnalysis();
+                });
+                
+                tabAnalysis.addEventListener('click', () => {
+                    switchTab('analysis');
+                    renderAnalysisTable();
+                });
+
+                tabAdmin.addEventListener('click', () => {
+                    if (tabAdmin.disabled) return;
+                    switchTab('admin');
+                });
+                
+                // Listener untuk Dashboard Interaktif
+                dashboardTableBody.addEventListener('click', (e) => {
+                    const cell = e.target.closest('td');
+                    if (!cell) return; 
+
+                    const row = cell.closest('tr');
+                    const className = row.dataset.className;
+                    if (!className) return;
+
+                    // 1. Tetapkan kelas aktif
+                    state.currentClass = className;
+                    state.currentProgram = state.classes[className]?.program; // Dapatkan program untuk kelas ini
+                    localStorage.setItem('currentClass_supabase_v1', state.currentClass);
+                    
+                    // 2. Kemaskini paparan "Kelas Aktif"
+                    updateActiveClassDisplay(); 
+                    
+                    // 3. Paparkan kandungan utama
+                    mainContentEl.classList.remove('hidden');
+                    
+                    // 4. Muat semula struktur penilaian untuk kelas yang baru dipilih
+                    renderAssessmentSelector(); 
+
+                    if (cell.cellIndex === 0) { 
+                        // Pengguna mengklik nama kelas.
+                        // Bawa pengguna ke tab Laporan secara lalai
+                        switchTab('report');
+                        renderAllClassReports();
+                        updatePrintableArea();
+                    } else {
+                        // Pengguna mengklik ikon (jalan pintas)
+                        if (!state.isEditMode) {
+                            alert("Hanya markah untuk semester semasa sahaja boleh diisi/disunting.");
+                            // Bawa ke tab laporan sebaliknya
+                            switchTab('report');
+                            renderAllClassReports();
+                            updatePrintableArea();
+                            return;
+                        }
+                        const assessmentName = allAssessments[cell.cellIndex - 1].name;
+                        if (!assessmentName) return;
+
+                        // 1. Tukar ke tab Kemasukan Markah
+                        switchTab('entry');
+                        
+                        // 2. Tetapkan penilaian
+                        assessmentSelectEl.value = assessmentName;
+                        
+                        // 3. Paparkan jadual (data sudah ada dalam state.scores)
+                        renderMarkEntryTable(); 
+                    }
+                });
+
+
+                // Pengurusan Sub-Tab Laporan
+                tabReportPbUps.addEventListener('click', () => {
+                    pbUpsReportDisplay.classList.remove('hidden'); topikalReportDisplay.classList.add('hidden');
+                    tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
+                    tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
+                    updatePrintableArea();
+                });
+
+                tabReportTopikal.addEventListener('click', () => {
+                    topikalReportDisplay.classList.remove('hidden'); pbUpsReportDisplay.classList.add('hidden');
+                    tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
+                    tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
+                    updatePrintableArea();
+                });
+                
+                printClassReportBtn.addEventListener('click', prepareAndPrint);
+                
+                viewModeSelectEl.addEventListener('change', () => {
+                    state.viewMode = viewModeSelectEl.value;
+                    localStorage.setItem('viewMode_v13', state.viewMode);
+                    filterDataAndView(); // Panggil fungsi utama untuk menapis semula data
+                });
+                
+                yearSelectEl.addEventListener('change', filterDataAndView);
+                semesterSelectEl.addEventListener('change', filterDataAndView);
+
+                loginBtn.addEventListener('click', async () => {
+                    const email = emailEl.value;
+                    const password = passwordEl.value; // <-- PEMBETULAN DI SINI
+                    loginErrorEl.classList.add('hidden');
+
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password,
+                    });
+
+                    if(error) {
+                        loginErrorEl.textContent = error.message;
+                        loginErrorEl.classList.remove('hidden');
+                    } else if (data.user) {
+                        await initializeAndFetchData(data.user);
+                        loginScreen.classList.add('hidden');
+                        appScreen.classList.remove('hidden');
+                    }
+                });
+
+                logoutBtn.addEventListener('click', async () => {
+                    await supabaseClient.auth.signOut();
+                    loginScreen.classList.remove('hidden');
+                    appScreen.classList.add('hidden');
+                    state.currentClass = null;
+                    localStorage.removeItem('currentClass_supabase_v1');
+                    localStorage.removeItem('viewMode_v13');
+                });
+            }
 
             // Pengurusan Tab Utama
             function switchTab(activeTab) {
-                const tabs = { dashboard: tabDashboard, entry: tabEntry, report: tabReport, analysis: tabAnalysis, admin: tabAdmin, class_analysis: tabClassAnalysis };
-                const contents = { dashboard: dashboardContent, entry: entryContent, report: reportContentArea, analysis: analysisContent, admin: adminContent, class_analysis: classAnalysisContent };
+                const tabs = { dashboard: tabDashboard, entry: tabEntry, report: tabReport, class_analysis: tabClassAnalysis, analysis: tabAnalysis, admin: tabAdmin };
+                const contents = { dashboard: dashboardContent, entry: entryContent, report: reportContentArea, class_analysis: classAnalysisContent, analysis: analysisContent, admin: adminContent };
 
                 for (const key in tabs) {
-                    if (key === activeTab) {
-                        tabs[key].className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
-                        if(contents[key]) contents[key].classList.remove('hidden');
-                    } else {
-                        tabs[key].className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
-                        if(contents[key]) contents[key].classList.add('hidden');
+                    if (tabs[key]) { // Semak jika tab wujud
+                        if (key === activeTab) {
+                            tabs[key].className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600 flex items-center';
+                            if(contents[key]) contents[key].classList.remove('hidden');
+                        } else {
+                            tabs[key].className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent flex items-center';
+                            if(contents[key]) contents[key].classList.add('hidden');
+                        }
                     }
                 }
                 
                 // Pastikan tab yang tiada akses kekal tersembunyi
                 if (state.user.role !== 'admin') tabAdmin.classList.add('hidden');
                 if (state.user.role === 'pensyarah') tabAnalysis.classList.add('hidden');
+                
+                // Lumpuhkan tab jika bukan mod edit
+                tabEntry.disabled = !state.isEditMode;
+                tabAdmin.disabled = !state.isEditMode;
             }
-
-            tabDashboard.addEventListener('click', () => {
-                switchTab('dashboard');
-                renderDashboard();
-            });
-
-            tabEntry.addEventListener('click', () => {
-                if (!state.currentClass) {
-                    alert("Sila pilih kelas dari dashboard dahulu.");
-                    return;
-                }
-                switchTab('entry');
-            });
-
-            tabReport.addEventListener('click', () => {
-                if (!state.currentClass) {
-                    alert("Sila pilih kelas dari dashboard dahulu.");
-                    return;
-                }
-                switchTab('report');
-                renderAllClassReports();
-                updatePrintableArea();
-            });
-
-            tabClassAnalysis.addEventListener('click', () => {
-                if (!state.currentClass) {
-                    alert("Sila pilih kelas dari dashboard dahulu.");
-                    return;
-                }
-                switchTab('class_analysis');
-                renderClassAnalysis();
-            });
-            
-            tabAnalysis.addEventListener('click', () => {
-                switchTab('analysis');
-                renderAnalysisTable();
-            });
-
-            tabAdmin.addEventListener('click', () => {
-                switchTab('admin');
-            });
-            
-            // Listener untuk Dashboard Interaktif
-            dashboardTableBody.addEventListener('click', (e) => {
-                const cell = e.target.closest('td');
-                if (!cell) return; 
-
-                const row = cell.closest('tr');
-                const className = row.dataset.className;
-                if (!className) return;
-
-                // 1. Tetapkan kelas aktif
-                state.currentClass = className;
-                state.currentProgram = state.classes[className]?.program; // Dapatkan program untuk kelas ini
-                localStorage.setItem('currentClass_supabase_v1', state.currentClass);
-                
-                // 2. Kemaskini paparan "Kelas Aktif"
-                updateActiveClassDisplay(); 
-                
-                // 3. Paparkan kandungan utama
-                mainContentEl.classList.remove('hidden');
-                
-                // 4. Muat semula struktur penilaian untuk kelas yang baru dipilih
-                renderAssessmentSelector(); 
-
-                if (cell.cellIndex === 0) { 
-                    // Pengguna mengklik nama kelas.
-                    // Bawa pengguna ke tab Laporan secara lalai
-                    switchTab('report');
-                    renderAllClassReports();
-                    updatePrintableArea();
-                } else {
-                    // Pengguna mengklik ikon (jalan pintas)
-                    const assessmentName = allAssessments[cell.cellIndex - 1].name;
-                    if (!assessmentName) return;
-
-                    // 1. Tukar ke tab Kemasukan Markah
-                    switchTab('entry');
-                    
-                    // 2. Tetapkan penilaian
-                    assessmentSelectEl.value = assessmentName;
-                    
-                    // 3. Paparkan jadual (data sudah ada dalam state.scores)
-                    renderMarkEntryTable(); 
-                }
-            });
-
-
-            // Pengurusan Sub-Tab Laporan
-            tabReportPbUps.addEventListener('click', () => {
-                pbUpsReportDisplay.classList.remove('hidden'); topikalReportDisplay.classList.add('hidden');
-                tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
-                tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
-                updatePrintableArea();
-            });
-
-            tabReportTopikal.addEventListener('click', () => {
-                topikalReportDisplay.classList.remove('hidden'); pbUpsReportDisplay.classList.add('hidden');
-                tabReportTopikal.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600';
-                tabReportPbUps.className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent';
-                updatePrintableArea();
-            });
             
             function prepareAndPrint() {
                 if (!state.currentClass) {
@@ -1483,15 +1583,28 @@
                 window.print();
             }
 
-            printClassReportBtn.addEventListener('click', prepareAndPrint);
-            
-            viewModeSelectEl.addEventListener('change', () => {
-                state.viewMode = viewModeSelectEl.value;
-                localStorage.setItem('viewMode_v13', state.viewMode);
-                renderDashboard();
-            });
-            
-            // Fungsi baru untuk Analisis Kelas
+            function updatePrintableArea() {
+                // Sembunyikan elemen print container
+                printContainer.innerHTML = '';
+                
+                // Tambah/buang kelas 'printable-area' pada kandungan aktif
+                if (!reportContentArea.classList.contains('hidden')) {
+                    if (!pbUpsReportDisplay.classList.contains('hidden')) { 
+                        pbUpsReportDisplay.classList.add('printable-area'); 
+                        topikalReportDisplay.classList.remove('printable-area'); 
+                    } 
+                    else { 
+                        topikalReportDisplay.classList.add('printable-area'); 
+                        pbUpsReportDisplay.classList.remove('printable-area'); 
+                    }
+                } else {
+                    // Tiada apa untuk dicetak jika bukan di tab laporan
+                    pbUpsReportDisplay.classList.remove('printable-area');
+                    topikalReportDisplay.classList.remove('printable-area');
+                }
+            }
+
+            // Fungsi baharu untuk Analisis Kelas
             function renderClassAnalysis() {
                 if (!state.currentClass || !state.classes[state.currentClass]) {
                     classAnalysisContent.innerHTML = '<p class="text-slate-500">Sila pilih kelas dari dashboard dahulu.</p>';
@@ -1503,7 +1616,8 @@
                 const currentClassData = state.classes[state.currentClass];
                 const students = currentClassData.students;
                 const program = currentClassData.program;
-                const structure = assessmentStructures[program];
+                const semester = state.viewableSemester;
+                const structure = getAssessmentStructure(program, semester);
                 const classScores = state.scores[state.currentClass] || {};
 
                 // 1. Analisis Ujian Topikal (Jadual)
@@ -1553,7 +1667,7 @@
                 // 2. Taburan Gred ETR Kelas
                 let classGradeDistribution = { 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'F': 0 };
                 students.forEach(student => {
-                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program);
+                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester);
                     if (classGradeDistribution.hasOwnProperty(calculated.grade)) {
                         classGradeDistribution[calculated.grade]++;
                     }
@@ -1561,6 +1675,63 @@
                 renderGradeDistributionChart('grade-distribution-chart-class', classGradeDistribution);
             }
 
+            async function filterDataAndView() {
+                state.viewableYear = yearSelectEl.value;
+                state.viewableSemester = semesterSelectEl.value;
+
+                // Tentukan jika dalam mod edit
+                state.isEditMode = (state.viewableYear === CURRENT_ACADEMIC_YEAR && state.viewableSemester === CURRENT_SEMESTER);
+                
+                // Tapis senarai kelas dan pelajar berdasarkan TAHUN dan SEMESTER yang DIPILIH
+                let lecturerRows = [];
+                let allLecturerRowsForYear = state.allLecturers.filter(L => L.TahunAkademik === state.viewableYear && L.Semester === state.viewableSemester);
+                
+                if (state.user.role === 'pensyarah') {
+                    lecturerRows = allLecturerRowsForYear.filter(L => L.Email === state.user.email);
+                    state.currentProgram = lecturerRows[0]?.Program;
+                } else {
+                    lecturerRows = allLecturerRowsForYear;
+                    state.currentProgram = 'Semua';
+                }
+                
+                state.visibleLecturerClasses = [...new Set(lecturerRows.map(row => row.KelasDiajar.trim()))];
+                
+                state.classes = {};
+                const studentsForSession = state.allStudents.filter(s => s.TahunAkademik === state.viewableYear && s.Semester === state.viewableSemester);
+                
+                state.visibleLecturerClasses.forEach(className => {
+                    let programForClass = allLecturerRowsForYear.find(l => l.KelasDiajar === className)?.Program;
+                    const studentsInClass = studentsForSession.filter(s => s.Kelas === className && s.Program === programForClass);
+                    state.classes[className] = { students: studentsInClass, program: programForClass };
+                });
+
+                // Lumpuhkan tab jika bukan semester semasa
+                if (state.isEditMode) {
+                    tabEntry.disabled = false;
+                    tabAdmin.disabled = false;
+                    entryDisabledWarning.classList.add('hidden');
+                    adminDisabledWarning.classList.add('hidden');
+                } else {
+                    tabEntry.disabled = true;
+                    tabAdmin.disabled = true;
+                    entryDisabledWarning.classList.remove('hidden');
+                    adminDisabledWarning.classList.remove('hidden');
+                }
+
+                // Reset kelas aktif jika ia tiada dalam senarai baru
+                if (!state.visibleLecturerClasses.includes(state.currentClass)) {
+                    state.currentClass = null;
+                }
+                
+                await loadAndListenToScores(); // Muat turun skor untuk sesi yang dilihat
+                updateActiveClassDisplay(); 
+                renderDashboard(); 
+                renderAssessmentSelector(); 
+                switchTab('dashboard');
+
+                // Pastikan kandungan utama dipaparkan
+                mainContentEl.classList.remove('hidden');
+            }
 
             async function startApp() {
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -1573,58 +1744,8 @@
                     loginScreen.classList.remove('hidden');
                     appScreen.classList.add('hidden');
                 }
+                attachEventListeners(); // Panggil event listeners selepas semua fungsi diisytiharkan
             }
-
-            loginBtn.addEventListener('click', async () => {
-                const email = emailEl.value;
-                const password = passwordEl.value; // <-- PEMBETULAN DI SINI
-                loginErrorEl.classList.add('hidden');
-
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: password,
-                });
-
-                if(error) {
-                    loginErrorEl.textContent = error.message;
-                    loginErrorEl.classList.remove('hidden');
-                } else if (data.user) {
-                    await initializeAndFetchData(data.user);
-                    loginScreen.classList.add('hidden');
-                    appScreen.classList.remove('hidden');
-                }
-            });
-
-            logoutBtn.addEventListener('click', async () => {
-                await supabaseClient.auth.signOut();
-                loginScreen.classList.remove('hidden');
-                appScreen.classList.add('hidden');
-                state.currentClass = null;
-                localStorage.removeItem('currentClass_supabase_v1');
-                localStorage.removeItem('viewMode_v13');
-            });
-
-            function updatePrintableArea() {
-                // Sembunyikan elemen print container
-                printContainer.innerHTML = '';
-                
-                // Tambah/buang kelas 'printable-area' pada kandungan aktif
-                if (!reportContentArea.classList.contains('hidden')) {
-                    if (!pbUpsReportDisplay.classList.contains('hidden')) { 
-                        pbUpsReportDisplay.classList.add('printable-area'); 
-                        topikalReportDisplay.classList.remove('printable-area'); 
-                    } 
-                    else { 
-                        topikalReportDisplay.classList.add('printable-area'); 
-                        pbUpsReportDisplay.classList.remove('printable-area'); 
-                    }
-                } else {
-                    // Tiada apa untuk dicetak jika bukan di tab laporan
-                    pbUpsReportDisplay.classList.remove('printable-area');
-                    topikalReportDisplay.classList.remove('printable-area');
-                }
-            }
-
 
             startApp();
 
