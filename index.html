@@ -317,23 +317,24 @@
                     <h3 class="text-lg font-semibold text-slate-800">Analisis Prestasi Keseluruhan (Purata Program)</h3>
                     <p class="text-sm text-slate-500 mt-1">Carta ini menunjukkan purata pencapaian ETR dan PNGK bagi setiap program.</p>
                     
-                    <div id="analysis-charts-container" class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                    <div id="analysis-charts-container" class="grid grid-cols-1 gap-8 mt-6">
                         <!-- Carta akan dijana oleh JS di sini -->
                     </div>
 
                     <div class="mt-12">
                         <h3 class="text-lg font-semibold text-slate-800">Taburan Gred ETR (Mengikut Program)</h3>
                         <p class="text-sm text-slate-500 mt-1">Carta ini menunjukkan jumlah pelajar bagi setiap gred ETR di semua kelas seliaan anda.</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                        <div class="flex flex-col gap-8 mt-6">
+
                             <!-- Carta 1: SES -->
                             <div class="bg-white p-6 rounded-lg shadow">
                                 <h4 class="text-lg font-semibold text-slate-700">Program Empat Semester (SES)</h4>
-                                <div id="grade-distribution-chart-ses" class="mt-4 h-72"></div>
+                                <div id="grade-distribution-chart-ses" class="mt-4 h-72 w-full"></div>
                             </div>
                             <!-- Carta 2: SDS -->
                             <div class="bg-white p-6 rounded-lg shadow">
                                 <h4 class="text-lg font-semibold text-slate-700">Program Dua Semester (SDS)</h4>
-                                <div id="grade-distribution-chart-sds" class="mt-4 h-72"></div>
+                                <div id="grade-distribution-chart-sds" class="mt-4 h-72 w-full"></div>
                             </div>
                         </div>
                     </div>
@@ -346,7 +347,9 @@
                     </div>
                     <h3 class="text-lg font-semibold text-slate-800">Mod Pentadbir: Urus Data Markah</h3>
                     <p class="text-sm text-slate-500 mt-1">Anda boleh memilih mana-mana kelas dan program untuk melihat atau mengemas kini data markah.</p>
-                    
+                    <!-- Admin Config Panel -->
+
+
                     <div class="grid md:grid-cols-3 gap-4 mt-4">
                         <div>
                             <label for="admin-program-select" class="block text-sm font-medium text-slate-700">Pilih Program</label>
@@ -412,33 +415,99 @@
 
             lucide.createIcons();
 
-            // Struktur Pemarkahan untuk kedua-dua program
-            const allAssessmentStructures = {
-                "SES": {
-                    "1": { // SES Sem 1
-                        topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 22 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 8 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 20 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 10 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 10 }, ],
-                        pb: [ { name: 'IA', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
-                        ups: [ { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 }, { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 14 }, ]
-                    },
-                    "2": { // SES Sem 2 (Contoh: Bilangan UT berbeza)
-                        topikal: [ { name: 'UT7', fullName: 'Ujian Topikal 7', fullMarks: 20 }, { name: 'UT8', fullName: 'Ujian Topikal 8', fullMarks: 20 }, { name: 'UT9', fullName: 'Ujian Topikal 9', fullMarks: 20 }, { name: 'UT10', fullName: 'Ujian Topikal 10', fullMarks: 20 } ],
-                        pb: [ { name: 'Tugasan 2', fullName: 'Tugasan Individu 2', fullMarks: 30, weightage: 15 }, { name: 'Amali 2', fullName: 'Laporan Amali 2', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif 2', fullName: 'Kemahiran Manipulatif 2', fullMarks: 20, weightage: 10 } ],
-                        ups: [ { name: 'UPS4', fullName: 'UPS 4', fullMarks: 40 }, { name: 'UPS5', fullName: 'UPS 5', fullMarks: 40 } ]
-                    }
-                },
-                "SDS": {
-                    "1": { // SDS Sem 1
-                        topikal: [ { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 }, { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 }, { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 }, { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 }, { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 }, { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 14 }, ],
-                        pb: [ { name: 'IA', fullName: 'Tugasan Individu', fullMarks: 25, weightage: 10 },{ name: 'Numerasi', fullName: 'Numerasi', fullMarks: 10, weightage: 5 }, { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 25, weightage: 15 }, { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 } ],
-                        ups: [ { name: 'UPS1', fullName: 'UPS 1A', fullMarks: 17 }, { name: 'UPS2', fullName: 'UPS 2', fullMarks: 16 }, { name: 'UPS3', fullName: 'UPS 3', fullMarks: 17 }, ]
-                    },
-                    "2": { // SDS Sem 2
-                        topikal: [ { name: 'UT7', fullName: 'Ujian Topikal 7', fullMarks: 20 }, { name: 'UT8', fullName: 'Ujian Topikal 8', fullMarks: 20 } ],
-                        pb: [ { name: 'Tugasan 2', fullName: 'Tugasan Individu 2', fullMarks: 30, weightage: 15 }, { name: 'Amali 2', fullName: 'Laporan Amali 2', fullMarks: 30, weightage: 15 }, { name: 'Manipulatif 2', fullName: 'Kemahiran Manipulatif 2', fullMarks: 20, weightage: 10 } ],
-                        ups: [ { name: 'UPS4', fullName: 'UPS 4', fullMarks: 40 } ]
-                    }
-                }
-            };
+           // Struktur Pemarkahan untuk kedua-dua program
+const allAssessmentStructures = {
+  "SES": {
+    "1": { // SES Sem 1
+      topikal: [
+        { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 22 },
+        { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 },
+        { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 8 },
+        { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 20 },
+        { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 10 },
+        { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 10 }
+      ],
+      pb: [
+        { name: 'IA', fullName: 'Tugasan Individu', fullMarks: 30, weightage: 15 },
+        { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 30, weightage: 15 },
+        { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 }
+      ],
+      ups: [
+        { name: 'UPS1A', fullName: 'UPS 1A', fullMarks: 13 },
+        { name: 'UPS1B', fullName: 'UPS 1B', fullMarks: 20 },
+        { name: 'UPS2', fullName: 'UPS 2', fullMarks: 10 },
+        { name: 'UPS3', fullName: 'UPS 3', fullMarks: 14 }
+      ],
+      trial: [
+        { name: 'SChem', fullName: 'Smartchem', fullMarks: 80, weightage: 40 }
+      ]
+    },
+    "2": { // SES Sem 2
+      topikal: [
+        { name: 'UT7', fullName: 'Ujian Topikal 7', fullMarks: 20 },
+        { name: 'UT8', fullName: 'Ujian Topikal 8', fullMarks: 20 },
+        { name: 'UT9', fullName: 'Ujian Topikal 9', fullMarks: 20 },
+        { name: 'UT10', fullName: 'Ujian Topikal 10', fullMarks: 20 }
+      ],
+      pb: [
+        { name: 'Tugasan 2', fullName: 'Tugasan Individu 2', fullMarks: 30, weightage: 15 },
+        { name: 'Amali 2', fullName: 'Laporan Amali 2', fullMarks: 30, weightage: 15 },
+        { name: 'Manipulatif 2', fullName: 'Kemahiran Manipulatif 2', fullMarks: 20, weightage: 10 }
+      ],
+      ups: [
+        { name: 'UPS4', fullName: 'UPS 4', fullMarks: 40 },
+        { name: 'UPS5', fullName: 'UPS 5', fullMarks: 40 }
+      ],
+      trial: [
+        { name: 'SChem', fullName: 'Smartchem', fullMarks: 80, weightage: 40 }
+      ]
+    }
+  },
+  "SDS": {
+    "1": { // SDS Sem 1
+      topikal: [
+        { name: 'UT1', fullName: 'Ujian Topikal 1', fullMarks: 21 },
+        { name: 'UT2', fullName: 'Ujian Topikal 2', fullMarks: 10 },
+        { name: 'UT3', fullName: 'Ujian Topikal 3', fullMarks: 17 },
+        { name: 'UT4', fullName: 'Ujian Topikal 4', fullMarks: 9 },
+        { name: 'UT5', fullName: 'Ujian Topikal 5', fullMarks: 9 },
+        { name: 'UT6', fullName: 'Ujian Topikal 6', fullMarks: 14 }
+      ],
+      pb: [
+        { name: 'IA', fullName: 'Tugasan Individu', fullMarks: 25, weightage: 10 },
+        { name: 'Numerasi', fullName: 'Numerasi', fullMarks: 10, weightage: 5 },
+        { name: 'Amali', fullName: 'Laporan Amali', fullMarks: 25, weightage: 15 },
+        { name: 'Manipulatif', fullName: 'Kemahiran Manipulatif', fullMarks: 20, weightage: 10 }
+      ],
+      ups: [
+        { name: 'UPS1', fullName: 'UPS 1A', fullMarks: 17 },
+        { name: 'UPS2', fullName: 'UPS 2', fullMarks: 16 },
+        { name: 'UPS3', fullName: 'UPS 3', fullMarks: 17 }
+      ],
+      trial: [
+        { name: 'SChem', fullName: 'Smartchem', fullMarks: 80, weightage: 40 }
+      ]
+    },
+    "2": { // SDS Sem 2
+      topikal: [
+        { name: 'UT7', fullName: 'Ujian Topikal 7', fullMarks: 20 },
+        { name: 'UT8', fullName: 'Ujian Topikal 8', fullMarks: 20 }
+      ],
+      pb: [
+        { name: 'Tugasan 2', fullName: 'Tugasan Individu 2', fullMarks: 30, weightage: 15 },
+        { name: 'Amali 2', fullName: 'Laporan Amali 2', fullMarks: 30, weightage: 15 },
+        { name: 'Manipulatif 2', fullName: 'Kemahiran Manipulatif 2', fullMarks: 20, weightage: 10 }
+      ],
+      ups: [
+        { name: 'UPS4', fullName: 'UPS 4', fullMarks: 40 }
+      ],
+      trial: [
+        { name: 'SChem', fullName: 'Smartchem', fullMarks: 80, weightage: 40 }
+      ]
+    }
+  }
+};
+
             
             let currentAssessmentStructure = allAssessmentStructures.SES['1']; // Lalai
             let allAssessments = [];
@@ -878,7 +947,9 @@
 
                 currentAssessmentStructure = getAssessmentStructure(programForStructure, state.viewableSemester);
                 allAssessments = [ ...currentAssessmentStructure.topikal, ...currentAssessmentStructure.pb, ...currentAssessmentStructure.ups ];
-                
+                if (currentAssessmentStructure.trial) {
+  		allAssessments.push(...currentAssessmentStructure.trial);
+		}
                 assessmentSelectEl.innerHTML = '<option value="">-- Pilih Penilaian --</option>';
                 allAssessments.forEach(ass => {
                     const option = document.createElement('option');
@@ -937,101 +1008,201 @@
             }
 
             function calculateScores(className, studentMatric, program, semester) {
-                const classScores = state.scores[className] || {};
-                const studentScores = classScores[studentMatric] || {};
-                const structure = getAssessmentStructure(program, semester); 
-                
-                const results = { pb: 0, ups: 0, ut: 0, totalEtr: 0, grade: 'N/A', gradePoint: 0, status: 'N/A' };
-                structure.pb.forEach(ass => { const score = parseFloat(studentScores[ass.name] || 0); if (!isNaN(score)) results.pb += (score / ass.fullMarks) * ass.weightage; });
-                
-                let totalUpsScore = 0, totalUpsFullMarks = 0;
-                structure.ups.forEach(ass => { 
-                    const score = parseFloat(studentScores[ass.name]); 
-                    if (!isNaN(score)) {
-                        totalUpsScore += score;
-                        totalUpsFullMarks += ass.fullMarks;
-                    }
-                });
-                if(totalUpsFullMarks > 0) results.ups = (totalUpsScore / totalUpsFullMarks) * totalWeightageUPS;
+  		const classScores = state.scores[className] || {};
+  		const studentScores = classScores[studentMatric] || {};
+  		const structure = getAssessmentStructure(program, semester);
 
-                let totalTopikalPercentage = 0, topikalCount = 0;
-                structure.topikal.forEach(ass => { const score = parseFloat(studentScores[ass.name]); if (!isNaN(score)) { totalTopikalPercentage += (score / ass.fullMarks) * 100; topikalCount++; } });
-                if (topikalCount > 0) results.ut = (totalTopikalPercentage / topikalCount) * (totalWeightageTopikal / 100);
-                
-                results.totalEtr = results.pb + results.ups + results.ut;
-                const gradeInfo = getGradeInfo(results.totalEtr);
-                results.grade = gradeInfo.grade;
-                results.gradePoint = gradeInfo.point;
-                results.status = gradeInfo.status;
-                
-                return results;
-            }
+  		// PB (mengikut weightage dalam struktur.pb)
+  		let pbTotal = 0;
+  		structure.pb.forEach(ass => {
+    		const s = parseFloat(studentScores[ass.name] || 0);
+    		if (!isNaN(s)) pbTotal += (s / ass.fullMarks) * ass.weightage;
+ 		 });
 
-            function renderAllClassReports() {
-                if (!state.currentClass || !state.classes[state.currentClass]) { pbUpsReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; topikalReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>'; return; }
-                reportClassNameEl.textContent = state.currentClass;
-                const currentClassData = state.classes[state.currentClass];
-                const students = currentClassData.students;
-                const program = currentClassData.program;
-                const semester = state.viewableSemester;
-                const structure = getAssessmentStructure(program, semester);
-                const classScores = state.scores[state.currentClass] || {};
+  		// UPS -> normal ke 20
+  		let totalUpsScore = 0, totalUpsFull = 0;
+  		structure.ups.forEach(ass => {
+    		const s = parseFloat(studentScores[ass.name]);
+    		if (!isNaN(s)) { totalUpsScore += s; totalUpsFull += ass.fullMarks; }
+  		});
+  		const ups = totalUpsFull > 0 ? (totalUpsScore / totalUpsFull) * 20 : 0;
 
-                let pbUpsHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
-                structure.pb.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
-                structure.ups.forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
-                pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">Jml PB</th><th class="px-2 py-2 font-bold text-blue-600">Jml UPS</th><th class="px-2 py-2 font-bold text-green-600">AKHIR</th></tr></thead>`;
-                let pbUpsBody = '<tbody>';
-                students.forEach((student, index) => {
-                    const studentScores = classScores[student.NoMatrik] || {};
-                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester);
-                    pbUpsBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
-                    structure.pb.forEach(a => { const score = studentScores[a.name]; const scoreDisplay = (score === null || score === undefined) ? '' : score; const weightedScore = (score === null || score === undefined) ? '' : `(${(score / a.fullMarks * a.weightage).toFixed(2)}%)`; pbUpsBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${weightedScore}</span></td>`; });
-                    structure.ups.forEach(a => pbUpsBody += `<td class="px-2 py-2">${studentScores[a.name] === null || studentScores[a.name] === undefined ? '' : studentScores[a.name]}</td>`);
-                    pbUpsBody += `<td class="px-2 py-2 font-bold text-blue-600">${calculated.pb.toFixed(2)}</td><td class="px-2 py-2 font-bold text-blue-600">${calculated.ups.toFixed(2)}</td><td class="px-2 py-2 font-bold text-green-600">${(calculated.pb + calculated.ups).toFixed(2)}</td></tr>`;
-                });
-                pbUpsBody += '</tbody>';
-                pbUpsReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${pbUpsHeader}${pbUpsBody}</table></div>`;
-                
-                let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
-                structure.topikal.forEach(a => {
-                    topikalHeader += `<th class="px-2 py-2">${a.name} (Markah/%)</th>`;
-                    topikalHeader += `<th class="px-2 py-2">${a.name} (Gred)</th>`;
-                });
-                topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-red-600">ETR (/100)</th><th class="px-2 py-2 font-bold text-red-600">Gred ETR</th><th class="px-2 py-2 font-bold text-red-600">Status</th></tr></thead>`;
-                let topikalBody = '<tbody>';
-                let totalGradePoints = 0;
-                students.forEach((student, index) => {
-                    const studentScores = classScores[student.NoMatrik] || {};
-                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester);
-                    totalGradePoints += calculated.gradePoint;
-                    topikalBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
-                    
-                    structure.topikal.forEach(a => {
-                        const score = studentScores[a.name];
-                        const scoreDisplay = (score === null || score === undefined) ? '' : score;
-                        let percentage = 0;
-                        let percentageDisplay = '';
-                        let gradeDisplay = '';
-                        if (score !== null && score !== undefined && score !== '') {
-                            percentage = (parseFloat(score) / a.fullMarks) * 100;
-                            percentageDisplay = `(${(percentage).toFixed(1)}%)`;
-                            gradeDisplay = getGradeInfo(percentage).grade;
-                        }
-                        topikalBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${percentageDisplay}</span></td>`;
-                        topikalBody += `<td class="px-2 py-2 font-medium">${gradeDisplay}</td>`;
-                    });
+  		// Topikal -> normal ke 40 (untuk ETR1)
+  		let topikalPctSum = 0, topikalCount = 0;
+  		structure.topikal.forEach(ass => {
+    		const s = parseFloat(studentScores[ass.name]);
+    		if (!isNaN(s)) { topikalPctSum += (s / ass.fullMarks) * 100; topikalCount++; }
+  		});
+  		const topikal = topikalCount > 0 ? (topikalPctSum / topikalCount) * (40/100) : 0;
 
-                    topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${calculated.ut.toFixed(2)}</td>`;
-                    topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${calculated.totalEtr.toFixed(2)}</td>`;
-                    topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${calculated.grade}</td>`;
-                    topikalBody += `<td class="px-2 py-2 font-bold ${calculated.status === 'LULUS' ? 'text-green-600' : 'text-red-600'}">${calculated.status}</td></tr>`;
-                });
-                topikalBody += '</tbody>';
-                
-                let classPNGK = (totalGradePoints / (students.length || 1)).toFixed(2);
-                topikalReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${topikalHeader}${topikalBody}</table></div><div class="mt-4 text-right"><h4 class="text-lg font-bold text-slate-800">Purata Nilai Gred Kelas (PNGK): <span class="text-red-600">${classPNGK}</span></h4></div>`;
-            }
+  		// Percubaan -> normal ke 40 (untuk ETR2) jika ada
+  		let trial = 0;
+  		if (structure.trial && structure.trial.length > 0) {
+    		const t = structure.trial[0];
+    		const s = parseFloat(studentScores[t.name]);
+    		if (!isNaN(s)) trial = (s / t.fullMarks) * t.weightage; // weightage 40
+  		}
+
+  		const pb = pbTotal;
+  		const etr1 = topikal + pb + ups;
+  		const etr2 = trial + pb + ups;
+  		const etrAvg = (etr1 + etr2) / 2;
+
+  		const grade1 = getGradeInfo(etr1);
+  		const grade2 = getGradeInfo(etr2);
+  		const gradeAvg = getGradeInfo(etrAvg);
+
+  		return { pb, ups, topikal, trial, etr1, etr2, etrAvg, grade1, grade2, gradeAvg };
+		}
+
+
+function renderAllClassReports() {
+  if (!state.currentClass || !state.classes[state.currentClass]) {
+    pbUpsReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>';
+    topikalReportDisplay.innerHTML = '<p class="text-slate-500">Sila pilih kelas untuk memaparkan laporan.</p>';
+    return;
+  }
+
+  reportClassNameEl.textContent = state.currentClass;
+  const currentClassData = state.classes[state.currentClass];
+  const students = currentClassData.students || [];
+  const program = currentClassData.program;
+  const semester = state.viewableSemester;
+  const structure = getAssessmentStructure(program, semester) || {};
+  const classScores = state.scores[state.currentClass] || {};
+
+  // --- PB & UPS header (tambah trial jika ada) ---
+  let pbUpsHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
+  (structure.pb || []).forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
+  (structure.ups || []).forEach(a => pbUpsHeader += `<th class="px-2 py-2">${a.name}</th>`);
+  // jika ada trial, paparkan juga kolum trial
+  if (structure.trial && structure.trial.length) {
+    structure.trial.forEach(t => pbUpsHeader += `<th class="px-2 py-2">${t.name}</th>`);
+  }
+  // Tambah header ringkasan ETR dan gred
+  pbUpsHeader += `<th class="px-2 py-2 font-bold text-purple-600">ETR1</th><th class="px-2 py-2 font-bold text-purple-600">ETR2</th><th class="px-2 py-2 font-bold text-red-600">ETR Avg</th><th class="px-2 py-2 font-bold text-red-600">Gred ETR1</th><th class="px-2 py-2 font-bold text-red-600">Gred ETR2</th><th class="px-2 py-2 font-bold text-red-600">Gred Purata</th>`;
+  pbUpsHeader += `<th class="px-2 py-2 font-bold text-blue-600">Jml PB</th><th class="px-2 py-2 font-bold text-blue-600">Jml UPS</th><th class="px-2 py-2 font-bold text-green-600">AKHIR</th></tr></thead>`;
+
+  let pbUpsBody = '<tbody>';
+  students.forEach((student, index) => {
+    const studentScores = classScores[student.NoMatrik] || {};
+    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester) || {};
+
+    // Fallbacks supaya fungsi tahan jika calculateScores belum lengkap
+    const etr1 = (typeof calculated.etr1 === 'number') ? calculated.etr1 : (typeof calculated.totalEtr === 'number' ? calculated.totalEtr : 0);
+    const etr2 = (typeof calculated.etr2 === 'number') ? calculated.etr2 : (typeof calculated.trial === 'number' ? calculated.trial : 0);
+    const etrAvg = (typeof calculated.etrAvg === 'number') ? calculated.etrAvg : ((etr1 + etr2) / 2);
+
+    const grade1 = calculated.grade1?.grade || calculated.grade || '—';
+    const grade2 = calculated.grade2?.grade || '—';
+    const gradeAvg = calculated.gradeAvg?.grade || calculated.grade || '—';
+
+    const pbVal = (typeof calculated.pb === 'number') ? calculated.pb : 0;
+    const upsVal = (typeof calculated.ups === 'number') ? calculated.ups : 0;
+    const akhirVal = pbVal + upsVal;
+
+    // Bina baris
+    let rowHtml = `<tr class="bg-white border-b">`;
+    rowHtml += `<td class="px-2 py-2">${index + 1}</td>`;
+    rowHtml += `<td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
+
+    // PB cells
+    (structure.pb || []).forEach(a => {
+      const score = studentScores[a.name];
+      const scoreDisplay = (score === null || score === undefined) ? '' : score;
+      const weightedScore = (score === null || score === undefined) ? '' : `(${((score / a.fullMarks) * a.weightage).toFixed(2)}%)`;
+      rowHtml += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${weightedScore}</span></td>`;
+    });
+
+    // UPS cells
+    (structure.ups || []).forEach(a => {
+      const val = studentScores[a.name];
+      rowHtml += `<td class="px-2 py-2">${val === null || val === undefined ? '' : val}</td>`;
+    });
+
+    // Trial cells (jika ada)
+    if (structure.trial && structure.trial.length) {
+      structure.trial.forEach(t => {
+        const v = studentScores[t.name];
+        rowHtml += `<td class="px-2 py-2">${v === null || v === undefined ? '' : v}</td>`;
+      });
+    }
+
+    // Ringkasan ETR & Gred
+    rowHtml += `<td class="px-2 py-2 font-bold text-purple-600">${Number(etr1).toFixed(2)}</td>`;
+    rowHtml += `<td class="px-2 py-2 font-bold text-purple-600">${Number(etr2).toFixed(2)}</td>`;
+    rowHtml += `<td class="px-2 py-2 font-bold text-red-600">${Number(etrAvg).toFixed(2)}</td>`;
+    rowHtml += `<td class="px-2 py-2 font-bold text-red-600">${grade1}</td>`;
+    rowHtml += `<td class="px-2 py-2 font-bold text-red-600">${grade2}</td>`;
+    rowHtml += `<td class="px-2 py-2 font-bold text-red-600">${gradeAvg}</td>`;
+
+    // Jml PB / Jml UPS / Akhir
+    rowHtml += `<td class="px-2 py-2 font-bold text-blue-600">${pbVal.toFixed(2)}</td>`;
+    rowHtml += `<td class="px-2 py-2 font-bold text-blue-600">${upsVal.toFixed(2)}</td>`;
+    rowHtml += `<td class="px-2 py-2 font-bold text-green-600">${akhirVal.toFixed(2)}</td>`;
+
+    rowHtml += `</tr>`;
+    pbUpsBody += rowHtml;
+  });
+  pbUpsBody += '</tbody>';
+  pbUpsReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${pbUpsHeader}${pbUpsBody}</table></div>`;
+
+  // --- Topikal report (tambah ETR1/ETR2/Avg jika mahu) ---
+  let topikalHeader = `<thead class="text-xs text-slate-700 uppercase bg-slate-50"><tr><th class="px-2 py-2">Bil</th><th class="px-2 py-2">Nama</th>`;
+  structure.topikal.forEach(a => {
+    topikalHeader += `<th class="px-2 py-2">${a.name} (Markah/%)</th>`;
+    topikalHeader += `<th class="px-2 py-2">${a.name} (Gred)</th>`;
+  });
+  // Tambah lajur ringkasan ETR1/ETR2/Avg dan gred purata/status
+  topikalHeader += `<th class="px-2 py-2 font-bold text-purple-600">Jml UT (/40)</th><th class="px-2 py-2 font-bold text-purple-600">ETR1</th><th class="px-2 py-2 font-bold text-purple-600">ETR2</th><th class="px-2 py-2 font-bold text-red-600">ETR Avg</th><th class="px-2 py-2 font-bold text-red-600">Gred Purata</th><th class="px-2 py-2 font-bold text-red-600">Status</th></tr></thead>`;
+
+  let topikalBody = '<tbody>';
+  let totalGradePoints = 0;
+  students.forEach((student, index) => {
+    const studentScores = classScores[student.NoMatrik] || {};
+    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester) || {};
+
+    // fallback values
+    const utVal = (typeof calculated.ut === 'number') ? calculated.ut : 0;
+    const etr1 = (typeof calculated.etr1 === 'number') ? calculated.etr1 : (typeof calculated.totalEtr === 'number' ? calculated.totalEtr : 0);
+    const etr2 = (typeof calculated.etr2 === 'number') ? calculated.etr2 : 0;
+    const etrAvg = (typeof calculated.etrAvg === 'number') ? calculated.etrAvg : ((etr1 + etr2) / 2);
+    const gradeAvgPoint = calculated.gradeAvg?.point ?? calculated.gradePoint ?? 0;
+    const gradeAvgLabel = calculated.gradeAvg?.grade ?? calculated.grade ?? '—';
+    const status = calculated.gradeAvg?.status ?? calculated.status ?? (gradeAvgPoint >= 2 ? 'LULUS' : 'GAGAL');
+
+    totalGradePoints += gradeAvgPoint;
+
+    topikalBody += `<tr class="bg-white border-b"><td class="px-2 py-2">${index + 1}</td><td class="px-2 py-2 text-left font-medium text-slate-900">${student.NamaPelajar}</td>`;
+
+    structure.topikal.forEach(a => {
+      const score = studentScores[a.name];
+      const scoreDisplay = (score === null || score === undefined) ? '' : score;
+      let percentage = 0;
+      let percentageDisplay = '';
+      let gradeDisplay = '';
+      if (score !== null && score !== undefined && score !== '') {
+        percentage = (parseFloat(score) / a.fullMarks) * 100;
+        percentageDisplay = `(${percentage.toFixed(1)}%)`;
+        gradeDisplay = getGradeInfo(percentage).grade;
+      }
+      topikalBody += `<td class="px-2 py-2">${scoreDisplay} <span class="text-xs text-slate-500">${percentageDisplay}</span></td>`;
+      topikalBody += `<td class="px-2 py-2 font-medium">${gradeDisplay}</td>`;
+    });
+
+    topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${utVal.toFixed(2)}</td>`;
+    topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${Number(etr1).toFixed(2)}</td>`;
+    topikalBody += `<td class="px-2 py-2 font-bold text-purple-600">${Number(etr2).toFixed(2)}</td>`;
+    topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${Number(etrAvg).toFixed(2)}</td>`;
+    topikalBody += `<td class="px-2 py-2 font-bold text-red-600">${gradeAvgLabel}</td>`;
+    topikalBody += `<td class="px-2 py-2 font-bold ${status === 'LULUS' ? 'text-green-600' : 'text-red-600'}">${status}</td></tr>`;
+  });
+  topikalBody += '</tbody>';
+
+  let classPNGK = (totalGradePoints / (students.length || 1)).toFixed(2);
+  topikalReportDisplay.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-500">${topikalHeader}${topikalBody}</table></div><div class="mt-4 text-right"><h4 class="text-lg font-bold text-slate-800">Purata Nilai Gred Kelas (PNGK): <span class="text-red-600">${classPNGK}</span></h4></div>`;
+}
+
 
             function renderDashboard() {
                 // Generate tables for SES and SDS separately
@@ -1045,7 +1216,7 @@
 
                     // Struktur penilaian untuk program ini (untuk header)
                     const progStructure = getAssessmentStructure(program, state.viewableSemester);
-                    const progAssessments = [ ...progStructure.topikal, ...progStructure.pb, ...progStructure.ups ];
+                    const progAssessments = [ ...progStructure.topikal, ...progStructure.pb, ...progStructure.ups,...(progStructure.trial || []) ];
 
                     // Build Header
                     let headHTML = `<tr><th rowspan="2" class="px-2 py-2 text-left text-xs font-medium text-slate-500 uppercase sticky left-0 bg-slate-50 z-10">Kelas</th>`;
@@ -1101,152 +1272,151 @@
                 });
             }
 
-            function renderAnalysisTable() {
-                const analysisClasses = Object.keys(state.classes); // Analisis sentiasa untuk semua kelas
-                
-                let programAnalysis = {
-                    SES: { totalPb: 0, totalUps: 0, totalAkhir: 0, totalEtr: 0, totalGradePoints: 0, studentCount: 0 },
-                    SDS: { totalPb: 0, totalUps: 0, totalAkhir: 0, totalEtr: 0, totalGradePoints: 0, studentCount: 0 }
-                };
-                
-                let overallGradeDistribution = {
-                    SES: { 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'F': 0 },
-                    SDS: { 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'F': 0 }
-                };
+		function renderAnalysisTable() {
+  		const analysisClasses = Object.keys(state.classes).sort();
 
-                analysisClasses.sort().forEach(className => {
-                    const classData = state.classes[className];
-                    if (!classData) return;
+  		// Struktur analisis diperluas untuk menyimpan mata gred berasingan
+  		let programAnalysis = {
+    		SES: {
+      		totalPb: 0, totalUps: 0, totalAkhir: 0, totalEtr1: 0, totalEtr2: 0, totalEtrAvg: 0,
+      		totalGradePointsETR1: 0, totalGradePointsETR2: 0, totalGradePointsAvg: 0, studentCount: 0
+    		},
+    		SDS: {
+      totalPb: 0, totalUps: 0, totalAkhir: 0, totalEtr1: 0, totalEtr2: 0, totalEtrAvg: 0,
+      totalGradePointsETR1: 0, totalGradePointsETR2: 0, totalGradePointsAvg: 0, studentCount: 0
+    }
+  };
 
-                    const students = classData.students || [];
-                    const program = classData.program;
-                    
-                    students.forEach(student => {
-                        const calculated = calculateScores(className, student.NoMatrik, program, state.viewableSemester);
-                        if (programAnalysis[program]) {
-                            programAnalysis[program].totalPb += calculated.pb;
-                            programAnalysis[program].totalUps += calculated.ups;
-                            programAnalysis[program].totalAkhir += (calculated.pb + calculated.ups);
-                            programAnalysis[program].totalEtr += calculated.totalEtr;
-                            programAnalysis[program].totalGradePoints += calculated.gradePoint;
-                            programAnalysis[program].studentCount += 1;
-                        }
-                        if (overallGradeDistribution[program] && overallGradeDistribution[program].hasOwnProperty(calculated.grade)) {
-                            overallGradeDistribution[program][calculated.grade]++;
-                        }
-                    });
-                });
-                
-                // Gantikan jadual dengan carta
-                const container = analysisChartsContainer;
-                container.innerHTML = ''; // Kosongkan
+  // Taburan gred berasingan untuk ETR1 dan ETR2
+  let overallGradeDistribution = {
+    SES: { ETR1: { 'A':0,'A-':0,'B+':0,'B':0,'B-':0,'C+':0,'C':0,'C-':0,'D+':0,'D':0,'F':0 },
+           ETR2: { 'A':0,'A-':0,'B+':0,'B':0,'B-':0,'C+':0,'C':0,'C-':0,'D+':0,'D':0,'F':0 } },
+    SDS: { ETR1: { 'A':0,'A-':0,'B+':0,'B':0,'B-':0,'C+':0,'C':0,'C-':0,'D+':0,'D':0,'F':0 },
+           ETR2: { 'A':0,'A-':0,'B+':0,'B':0,'B-':0,'C+':0,'C':0,'C-':0,'D+':0,'D':0,'F':0 } }
+  };
 
-                // Jana kad untuk setiap program
-                Object.keys(programAnalysis).forEach(programName => {
-                    const data = programAnalysis[programName];
-                    const count = data.studentCount || 1; // Elak pembahagian dengan 0
-                    
-                    const avgPb = data.totalPb / count;
-                    const avgUps = data.totalUps / count;
-                    const avgAkhir = data.totalAkhir / count;
-                    const avgEtr = data.totalEtr / count;
-                    const avgPngk = data.totalGradePoints / count;
+  analysisClasses.forEach(className => {
+    const classData = state.classes[className];
+    if (!classData) return;
 
-                    // Cipta carta bar
-                    const cardHTML = `
-                        <div class="bg-white p-6 rounded-lg shadow">
-                            <h4 class="text-xl font-semibold text-slate-800">${programName === 'SES' ? 'Program Empat Semester (SES)' : 'Program Dua Semester (SDS)'}</h4>
-                            <p class="text-sm text-slate-500">${data.studentCount} Pelajar</p>
-                            
-                            <div class="mt-6 text-center">
-                                <p class="text-sm font-medium text-slate-600">PURATA NILAI GRED (PNGK)</p>
-                                <p class="text-5xl font-bold text-red-600">${avgPngk.toFixed(2)}</p>
-                            </div>
+    const students = classData.students || [];
+    const program = classData.program;
+    if (!program || !programAnalysis[program]) return;
 
-                            <div class="mt-8 space-y-4">
-                                <!-- Bar ETR -->
-                                <div>
-                                    <div class="flex justify-between text-sm font-medium text-slate-700">
-                                        <span>Purata ETR (/100)</span>
-                                        <span>${avgEtr.toFixed(2)}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-200 rounded-full h-4 mt-1">
-                                        <div class="bg-purple-600 h-4 rounded-full" style="width: ${avgEtr.toFixed(2)}%"></div>
-                                    </div>
-                                </div>
+    students.forEach(student => {
+      // calculateScores harus mengembalikan etr1, etr2, etrAvg, grade1, grade2, gradeAvg, pb, ups
+      const c = calculateScores(className, student.NoMatrik, program, state.viewableSemester);
 
-                                <!-- Bar PB -->
-                                <div>
-                                    <div class="flex justify-between text-sm font-medium text-slate-700">
-                                        <span>Purata PB (/40)</span>
-                                        <span>${avgPb.toFixed(2)}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-200 rounded-full h-4 mt-1">
-                                        <div class="bg-blue-600 h-4 rounded-full" style="width: ${(avgPb / 40 * 100).toFixed(2)}%"></div>
-                                    </div>
-                                </div>
+      // Kemas kini jumlah untuk program (ETR1/ETR2/Avg)
+      programAnalysis[program].totalPb += (c.pb || 0);
+      programAnalysis[program].totalUps += (c.ups || 0);
+      programAnalysis[program].totalAkhir += ((c.pb || 0) + (c.ups || 0));
+      programAnalysis[program].totalEtr1 += (c.etr1 || 0);
+      programAnalysis[program].totalEtr2 += (c.etr2 || 0);
+      programAnalysis[program].totalEtrAvg += (c.etrAvg || 0);
 
-                                <!-- Bar UPS -->
-                                <div>
-                                    <div class="flex justify-between text-sm font-medium text-slate-700">
-                                        <span>Purata UPS (/20)</span>
-                                        <span>${avgUps.toFixed(2)}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-200 rounded-full h-4 mt-1">
-                                        <div class="bg-blue-600 h-4 rounded-full" style="width: ${(avgUps / 20 * 100).toFixed(2)}%"></div>
-                                    </div>
-                                </div>
+      // Kemas kini jumlah mata gred untuk PNGK (gunakan point dari grade info)
+      programAnalysis[program].totalGradePointsETR1 += (c.grade1?.point || 0);
+      programAnalysis[program].totalGradePointsETR2 += (c.grade2?.point || 0);
+      programAnalysis[program].totalGradePointsAvg += (c.gradeAvg?.point || 0);
 
-                                <!-- Bar Akhir -->
-                                <div>
-                                    <div class="flex justify-between text-sm font-medium text-slate-700">
-                                        <span>Purata Akhir (/60)</span>
-                                        <span>${avgAkhir.toFixed(2)}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-200 rounded-full h-4 mt-1">
-                                        <div class="bg-green-600 h-4 rounded-full" style="width: ${(avgAkhir / 60 * 100).toFixed(2)}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    container.innerHTML += cardHTML;
-                });
-                
-                // Jana Carta Taburan Gred
-                renderGradeDistributionChart('grade-distribution-chart-ses', overallGradeDistribution.SES);
-                renderGradeDistributionChart('grade-distribution-chart-sds', overallGradeDistribution.SDS);
-            }
+      programAnalysis[program].studentCount += 1;
 
-            function renderGradeDistributionChart(containerId, gradeData) {
-                const chartContainer = document.getElementById(containerId);
-                if (!chartContainer) return;
-                
-                const maxCount = Math.max(...Object.values(gradeData)) || 1; // Elak pembahagian dengan 0
-                const grades = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F'];
-                
-                let chartHTML = '<div class="flex justify-between items-end h-64 w-full space-x-2 border-b border-slate-300 pb-2">';
-                
-                grades.forEach(grade => {
-                    const count = gradeData[grade] || 0;
-                    const heightPercent = count > 0 ? Math.max((count / maxCount) * 100, 2) : 0;
-                    const isPass = !['C-', 'D+', 'D', 'F'].includes(grade);
-                    const barColor = isPass ? 'bg-blue-500' : 'bg-red-500';
+      // Kemas kini taburan gred berasingan
+      if (overallGradeDistribution[program]) {
+        const g1 = c.grade1?.grade;
+        const g2 = c.grade2?.grade;
+        if (g1 && overallGradeDistribution[program].ETR1.hasOwnProperty(g1)) overallGradeDistribution[program].ETR1[g1]++;
+        if (g2 && overallGradeDistribution[program].ETR2.hasOwnProperty(g2)) overallGradeDistribution[program].ETR2[g2]++;
+      }
+    });
+  });
 
-                    chartHTML += `
-                        <div class="flex flex-col items-center flex-1 h-full justify-end group">
-                            <span class="text-xs font-bold mb-1 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">${count}</span>
-                            <div class="w-full bg-slate-100 rounded-t h-full flex items-end relative overflow-hidden">
-                                <div class="${barColor} w-full rounded-t transition-all duration-700 ease-out" style="height: ${heightPercent}%"></div>
-                            </div>
-                            <span class="text-xs font-bold text-slate-700 mt-2">${grade}</span>
-                        </div>
-                    `;
-                });
-                
-                chartHTML += '</div>';
-                chartContainer.innerHTML = chartHTML;
-            }
+  // Selepas pengiraan, kira purata untuk setiap program
+  Object.keys(programAnalysis).forEach(prog => {
+    const p = programAnalysis[prog];
+    const n = p.studentCount || 1; // elak pembahagian 0
+    p.avgPb = p.totalPb / n;
+    p.avgUps = p.totalUps / n;
+    p.avgEtr1 = p.totalEtr1 / n;
+    p.avgEtr2 = p.totalEtr2 / n;
+    p.avgEtrAvg = p.totalEtrAvg / n;
+    p.pngkETR1 = (p.totalGradePointsETR1 / n) || 0;
+    p.pngkETR2 = (p.totalGradePointsETR2 / n) || 0;
+    p.pngkAvg  = (p.totalGradePointsAvg / n) || 0;
+  });
+
+  // --- Output / Render ---
+  // Contoh: kemaskini container carta / kad ringkasan
+  // 1) Paparkan kad ringkasan purata untuk setiap program
+  analysisChartsContainer.innerHTML = ''; // kosongkan
+  Object.keys(programAnalysis).forEach(prog => {
+    const p = programAnalysis[prog];
+    const cardHTML = `
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h4 class="text-lg font-semibold">${prog}</h4>
+        <p class="text-sm text-slate-500">${p.studentCount} Pelajar</p>
+        <div class="mt-4">
+          <div class="text-sm">Purata ETR1: <strong>${p.avgEtr1.toFixed(2)}</strong></div>
+          <div class="text-sm">Purata ETR2: <strong>${p.avgEtr2.toFixed(2)}</strong></div>
+          <div class="text-sm">Purata ETR (Gabungan): <strong>${p.avgEtrAvg.toFixed(2)}</strong></div>
+          <div class="text-sm mt-2">PNGK ETR1: <strong>${p.pngkETR1.toFixed(2)}</strong> | PNGK ETR2: <strong>${p.pngkETR2.toFixed(2)}</strong> | PNGK Purata: <strong>${p.pngkAvg.toFixed(2)}</strong></div>
+        </div>
+      </div>`;
+    analysisChartsContainer.innerHTML += cardHTML;
+  });
+
+  // 2) Paparkan carta perbandingan gred (ETR1 vs ETR2) untuk SES dan SDS
+  renderGradeDistributionChart('grade-distribution-chart-ses', overallGradeDistribution.SES.ETR1, overallGradeDistribution.SES.ETR2);
+  renderGradeDistributionChart('grade-distribution-chart-sds', overallGradeDistribution.SDS.ETR1, overallGradeDistribution.SDS.ETR2);
+}
+
+
+function renderGradeDistributionChart(containerId, gradeData1, gradeData2 = null) {
+  const chartContainer = document.getElementById(containerId);
+  if (!chartContainer) return;
+
+  const grades = ['A','A-','B+','B','B-','C+','C','C-','D+','D','F'];
+  // Tentukan max untuk skala
+  let maxCount = 1;
+  grades.forEach(g => {
+    const v1 = gradeData1?.[g] || 0;
+    const v2 = gradeData2?.[g] || 0;
+    maxCount = Math.max(maxCount, v1, v2);
+  });
+
+  // Bina HTML: setiap lajur mengandungi 2 bar (ETR1 biru, ETR2 hijau) jika gradeData2 wujud
+  let html = `<div class="w-full">`;
+  html += `<div class="flex items-end justify-between h-56 gap-3">`;
+  grades.forEach(g => {
+    const v1 = gradeData1?.[g] || 0;
+    const v2 = gradeData2?.[g] || 0;
+    const h1 = maxCount ? Math.round((v1 / maxCount) * 100) : 0;
+    const h2 = maxCount ? Math.round((v2 / maxCount) * 100) : 0;
+
+    html += `
+      <div class="flex flex-col items-center w-full">
+        <div class="flex items-end gap-1 h-44">
+          <div title="ETR1: ${v1}" class="w-6 bg-blue-500 rounded-t" style="height:${h1}%;"></div>
+          ${ gradeData2 ? `<div title="ETR2: ${v2}" class="w-6 bg-green-500 rounded-t" style="height:${h2}%;"></div>` : '' }
+        </div>
+        <div class="text-xs font-semibold mt-2">${g}</div>
+        <div class="text-xs text-slate-600 mt-1">${v1}${ gradeData2 ? ' / ' + v2 : '' }</div>
+      </div>`;
+  });
+  html += `</div>`;
+
+  // Legenda di bawah carta
+  html += `<div class="flex items-center gap-4 mt-4">`;
+  html += `<div class="flex items-center gap-2"><span class="w-3 h-3 bg-blue-500 inline-block"></span><span class="text-sm">ETR1</span></div>`;
+  if (gradeData2) html += `<div class="flex items-center gap-2"><span class="w-3 h-3 bg-green-500 inline-block"></span><span class="text-sm">ETR2</span></div>`;
+  html += `</div>`;
+
+  html += `</div>`;
+  chartContainer.innerHTML = html;
+}
+
+
 
             async function filterDataAndView() {
                 state.viewableYear = yearSelectEl.value;
@@ -1334,10 +1504,16 @@
                             }
                             // Dapatkan struktur penilaian untuk program kelas ini
                             const structure = getAssessmentStructure(state.currentProgram, state.viewableSemester);
-                            const assessments = [ ...structure.topikal, ...structure.pb, ...structure.ups ];
-                            
-                            // Offset -1 kerana kolom pertama ialah Nama Kelas
-                            const assessmentName = assessments[cell.cellIndex - 1]?.name;
+                            const assessments = [
+  				...(structure.topikal || []),
+ 				...(structure.pb || []),
+  				...(structure.ups || []),
+  				...(structure.trial || [])
+				];
+
+// Offset -1 kerana kolom pertama ialah Nama Kelas
+const assessmentIndex = cell.cellIndex - 1;
+const assessmentName = assessments[assessmentIndex]?.name;
                             
                             if (!assessmentName) return;
 
@@ -1485,75 +1661,117 @@
             }
 
             // Fungsi baharu untuk Analisis Kelas
-            function renderClassAnalysis() {
-                if (!state.currentClass || !state.classes[state.currentClass]) {
-                    classAnalysisContent.innerHTML = '<p class="text-slate-500">Sila pilih kelas dari dashboard dahulu.</p>';
-                    return;
-                }
-                
-                classAnalysisTitle.textContent = state.currentClass;
-                
-                const currentClassData = state.classes[state.currentClass];
-                const students = currentClassData.students;
-                const program = currentClassData.program;
-                const semester = state.viewableSemester;
-                const structure = getAssessmentStructure(program, semester);
-                const classScores = state.scores[state.currentClass] || {};
+function renderClassAnalysis() {
+  if (!state.currentClass || !state.classes[state.currentClass]) {
+    classAnalysisContent.innerHTML = '<p class="text-slate-500">Sila pilih kelas dari dashboard dahulu.</p>';
+    return;
+  }
 
-                // 1. Analisis Ujian Topikal (Jadual)
-                let utHead = `<tr>
-                    <th class="px-2 py-2 text-left text-xs font-medium text-slate-500 uppercase">Ujian Topikal</th>
-                    <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">Min Markah (%)</th>
-                    <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">% Lulus (Gred C ke atas)</th>
-                    <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">% Gred A</th>
-                </tr>`;
-                classUtAnalysisHead.innerHTML = utHead;
+  classAnalysisTitle.textContent = state.currentClass;
 
-                let utBody = '';
-                structure.topikal.forEach(ass => {
-                    let totalPercentage = 0;
-                    let passCount = 0;
-                    let aCount = 0;
-                    let studentWithMarkCount = 0;
-                    
-                    students.forEach(student => {
-                        const studentScores = classScores[student.NoMatrik] || {};
-                        const score = parseFloat(studentScores[ass.name]);
-                        
-                        if (!isNaN(score)) {
-                            studentWithMarkCount++;
-                            const percentage = (score / ass.fullMarks) * 100;
-                            totalPercentage += percentage;
-                            const gradeInfo = getGradeInfo(percentage);
-                            if (gradeInfo.status === 'LULUS') passCount++;
-                            if (gradeInfo.grade === 'A') aCount++;
-                        }
-                    });
-                    
-                    const count = studentWithMarkCount || 1;
-                    const mean = (totalPercentage / count).toFixed(2);
-                    const passPercent = ((passCount / count) * 100).toFixed(1);
-                    const aPercent = ((aCount / count) * 100).toFixed(1);
+  const currentClassData = state.classes[state.currentClass];
+  const students = currentClassData.students || [];
+  const program = currentClassData.program;
+  const semester = state.viewableSemester;
+  const structure = getAssessmentStructure(program, semester);
+  const classScores = state.scores[state.currentClass] || {};
 
-                    utBody += `<tr class="bg-white border-b">
-                        <td class="px-2 py-2 text-left font-medium text-slate-900">${ass.name} - ${ass.fullName}</td>
-                        <td class="px-2 py-2 text-center text-slate-700">${mean}%</td>
-                        <td class="px-2 py-2 text-center text-slate-700">${passPercent}%</td>
-                        <td class="px-2 py-2 text-center text-slate-700">${aPercent}%</td>
-                    </tr>`;
-                });
-                classUtAnalysisBody.innerHTML = utBody;
-                
-                // 2. Taburan Gred ETR Kelas
-                let classGradeDistribution = { 'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0, 'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'F': 0 };
-                students.forEach(student => {
-                    const calculated = calculateScores(state.currentClass, student.NoMatrik, program, semester);
-                    if (classGradeDistribution.hasOwnProperty(calculated.grade)) {
-                        classGradeDistribution[calculated.grade]++;
-                    }
-                });
-                renderGradeDistributionChart('grade-distribution-chart-class', classGradeDistribution);
-            }
+  // 1. Analisis Ujian Topikal (Jadual) - tidak berubah banyak
+  let utHead = `<tr>
+      <th class="px-2 py-2 text-left text-xs font-medium text-slate-500 uppercase">Ujian Topikal</th>
+      <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">Min Markah (%)</th>
+      <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">% Lulus (Gred C ke atas)</th>
+      <th class="px-2 py-2 text-xs font-medium text-slate-500 uppercase">% Gred A</th>
+    </tr>`;
+  classUtAnalysisHead.innerHTML = utHead;
+
+  let utBody = '';
+  structure.topikal.forEach(ass => {
+    let totalPercentage = 0;
+    let passCount = 0;
+    let aCount = 0;
+    let studentWithMarkCount = 0;
+
+    students.forEach(student => {
+      const studentScores = classScores[student.NoMatrik] || {};
+      const score = parseFloat(studentScores[ass.name]);
+
+      if (!isNaN(score)) {
+        studentWithMarkCount++;
+        const percentage = (score / ass.fullMarks) * 100;
+        totalPercentage += percentage;
+        const gradeInfo = getGradeInfo(percentage);
+        if (gradeInfo.status === 'LULUS') passCount++;
+        if (gradeInfo.grade === 'A') aCount++;
+      }
+    });
+
+    const count = studentWithMarkCount || 1;
+    const mean = (totalPercentage / count).toFixed(2);
+    const passPercent = ((passCount / count) * 100).toFixed(1);
+    const aPercent = ((aCount / count) * 100).toFixed(1);
+
+    utBody += `<tr class="bg-white border-b">
+        <td class="px-2 py-2 text-left font-medium text-slate-900">${ass.name} - ${ass.fullName}</td>
+        <td class="px-2 py-2 text-center text-slate-700">${mean}%</td>
+        <td class="px-2 py-2 text-center text-slate-700">${passPercent}%</td>
+        <td class="px-2 py-2 text-center text-slate-700">${aPercent}%</td>
+      </tr>`;
+  });
+  classUtAnalysisBody.innerHTML = utBody;
+
+  // 2. Taburan Gred ETR Kelas - KUMPULKAN BERASINGAN UNTUK ETR1 & ETR2
+  const gradeKeys = ['A','A-','B+','B','B-','C+','C','C-','D+','D','F'];
+  const distETR1 = gradeKeys.reduce((acc, g) => (acc[g] = 0, acc), {});
+  const distETR2 = gradeKeys.reduce((acc, g) => (acc[g] = 0, acc), {});
+
+  // Optional: juga kira purata ETR1/ETR2 untuk paparan ringkasan
+  let totalEtr1 = 0, totalEtr2 = 0, countStudents = 0;
+  let totalPngkEtr1 = 0, totalPngkEtr2 = 0;
+
+  students.forEach(student => {
+    const c = calculateScores(state.currentClass, student.NoMatrik, program, semester);
+    // Pastikan calculateScores mengembalikan grade1.grade dan grade2.grade
+    const g1 = c.grade1?.grade;
+    const g2 = c.grade2?.grade;
+
+    if (g1 && distETR1.hasOwnProperty(g1)) distETR1[g1]++;
+    if (g2 && distETR2.hasOwnProperty(g2)) distETR2[g2]++;
+
+    // Kira purata numerik jika ada
+    if (typeof c.etr1 === 'number') { totalEtr1 += c.etr1; totalPngkEtr1 += (c.grade1?.point || 0); }
+    if (typeof c.etr2 === 'number') { totalEtr2 += c.etr2; totalPngkEtr2 += (c.grade2?.point || 0); }
+    countStudents++;
+  });
+
+  const avgEtr1 = countStudents ? (totalEtr1 / countStudents) : 0;
+  const avgEtr2 = countStudents ? (totalEtr2 / countStudents) : 0;
+  const avgPngkEtr1 = countStudents ? (totalPngkEtr1 / countStudents) : 0;
+  const avgPngkEtr2 = countStudents ? (totalPngkEtr2 / countStudents) : 0;
+
+  // 3. Paparkan ringkasan di atas carta (boleh ubah HTML mengikut gaya)
+  const summaryHtml = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white p-4 rounded shadow">
+        <h4 class="font-semibold">Ringkasan ETR1 (Topikal + PB + UPS)</h4>
+        <p class="text-sm">Purata ETR1: <strong>${avgEtr1.toFixed(2)}</strong></p>
+        <p class="text-sm">Purata PNGK (ETR1): <strong>${avgPngkEtr1.toFixed(2)}</strong></p>
+      </div>
+      <div class="bg-white p-4 rounded shadow">
+        <h4 class="font-semibold">Ringkasan ETR2 (Percubaan + PB + UPS)</h4>
+        <p class="text-sm">Purata ETR2: <strong>${avgEtr2.toFixed(2)}</strong></p>
+        <p class="text-sm">Purata PNGK (ETR2): <strong>${avgPngkEtr2.toFixed(2)}</strong></p>
+      </div>
+    </div>`;
+  // letakkan ringkasan sebelum carta; anda boleh pilih lokasi lain
+  document.getElementById('grade-distribution-chart-class').previousElementSibling?.remove?.(); // bersihkan jika perlu
+  document.getElementById('grade-distribution-chart-class').insertAdjacentHTML('beforebegin', summaryHtml);
+
+  // 4. Panggil fungsi carta yang menerima dua set data (ETR1 vs ETR2)
+  // Pastikan renderGradeDistributionChart(containerId, gradeData1, gradeData2) wujud
+  renderGradeDistributionChart('grade-distribution-chart-class', distETR1, distETR2);
+}
+
 
             // ---------- Tambahan: fungsi yang hilang (minimal & stabil) ----------
 
